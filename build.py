@@ -8,6 +8,7 @@ SITE = 'Cloudy Prompt Library'
 X_HANDLE = 'ItsCloudySpace'
 NEWS = 'https://cloudys-newsletter.beehiiv.com/subscribe'
 TOOLS_SITE = 'https://itscloudy96.github.io/ai-tool-finder/'
+KITS_SITE = 'https://itscloudy96.github.io/game-dev-kits/'
 TODAY = datetime.date.today().isoformat()
 src, out = Path('src'), Path('dist')
 D = json.load(open('data/prompts.json'))
@@ -16,7 +17,7 @@ BY = {p['id']: p for p in PROMPTS}
 CAT_BLURB = D['categoryBlurbs']
 e = lambda s: html.escape(str(s if s is not None else ''), quote=True)
 def jl(o): return '<script type="application/ld+json">' + json.dumps(o, ensure_ascii=False).replace('</','<\\/') + '</script>'
-ORG = {"@type":"Organization","name":"Cloudy","url":BASE+'/',"sameAs":[f"https://x.com/{X_HANDLE}","https://cloudys-newsletter.beehiiv.com",TOOLS_SITE]}
+ORG = {"@type":"Organization","name":"Cloudy","url":BASE+'/',"sameAs":[f"https://x.com/{X_HANDLE}","https://cloudys-newsletter.beehiiv.com",TOOLS_SITE,KITS_SITE]}
 
 def page(path, title, desc, body, root, ld=None, ogtype='website'):
     url = BASE + '/' + path
@@ -46,7 +47,7 @@ def page(path, title, desc, body, root, ld=None, ogtype='website'):
 <a class="skip" href="#main">Skip to content</a>
 <header class="site-header"><div class="container nav">
 <a class="logo" href="{root}"><span class="logo-mark" aria-hidden="true">☁️</span>Cloudy <span class="muted" style="font-weight:600">Prompt Library</span></a>
-<nav class="nav-links" aria-label="Main"><a href="{root}prompts/">Library</a><a href="{root}category/">Categories</a><a href="{e(TOOLS_SITE)}">Tool Finder</a><a href="{root}about/">About</a><a href="{NEWS}" target="_blank" rel="noopener">Newsletter</a></nav>
+<nav class="nav-links" aria-label="Main"><a href="{root}prompts/">Library</a><a href="{root}category/">Categories</a><a href="{e(TOOLS_SITE)}">Tool Finder</a><a href="{e(KITS_SITE)}">Kits</a><a href="{root}about/">About</a><a href="{NEWS}" target="_blank" rel="noopener">Newsletter</a></nav>
 </div></header>
 <main id="main" class="container">
 {body}
@@ -55,7 +56,7 @@ def page(path, title, desc, body, root, ld=None, ogtype='website'):
 <div><strong>☁️ Cloudy</strong><p>Original, copy-ready prompts and agent configs for builders, gamers and vibe coders.</p>
 <form class="newsletter" action="{NEWS}" method="get" target="_blank"><input type="email" name="email" placeholder="you@example.com" aria-label="Email address" required><button class="btn btn-primary" type="submit">Get the daily AI agent changelog</button></form></div>
 <div><strong>Explore</strong><br>{'<br>'.join(f'<a href="{root}category/{k}/">{e(v)}</a>' for k,v in CATS.items())}</div>
-<div><strong>Cloudy</strong><br><a href="{root}about/">About &amp; disclosure</a><br><a href="{root}about/#sponsor">Sponsor Cloudy</a><br><a href="{e(TOOLS_SITE)}">AI Tool Finder</a><br><a href="https://x.com/{X_HANDLE}" target="_blank" rel="noopener">@{X_HANDLE} on X</a><br><a href="{root}llms.txt">llms.txt</a><br><a href="{root}sitemap.xml">Sitemap</a></div>
+<div><strong>Cloudy</strong><br><a href="{root}about/">About &amp; disclosure</a><br><a href="{root}about/#sponsor">Sponsor Cloudy</a><br><a href="{e(TOOLS_SITE)}">AI Tool Finder</a><br><a href="{e(KITS_SITE)}">Game Dev Kits</a><br><a href="https://x.com/{X_HANDLE}" target="_blank" rel="noopener">@{X_HANDLE} on X</a><br><a href="{root}llms.txt">llms.txt</a><br><a href="{root}sitemap.xml">Sitemap</a></div>
 </div><div class="container disclaimer" style="margin-top:1rem">© {datetime.date.today().year} Cloudy. Prompts are original Cloudy writing, free to use and adapt. Review any model output before you ship it. Some outbound links may be affiliate links.</div></footer>
 <script src="{root}js/app.js?v={TODAY}" defer></script>
 </body></html>'''
@@ -116,6 +117,7 @@ def build():
 <section class="section card"><h2>Get the daily AI agent changelog</h2><p class="muted">New agent tools, model updates and workflow changes in a 3-minute read. Free.</p>
 <form class="newsletter" action="{NEWS}" method="get" target="_blank"><input type="email" name="email" placeholder="you@example.com" aria-label="Email address" required><button class="btn btn-primary" type="submit">Subscribe free</button></form></section>
 <section class="section"><h2>Also from Cloudy</h2><div class="sister"><a class="card" href="{e(TOOLS_SITE)}"><strong>☁️ AI Tool Finder</strong><p class="muted" style="margin:.4rem 0 0">A 30-second quiz that matches you with the right AI tools for coding, agents, game dev and more.</p></a>
+<a class="card" href="{e(KITS_SITE)}"><strong>☁️ Game Dev Kits</strong><p class="muted" style="margin:.4rem 0 0">Free, playable starter games with a downloadable zip and a vibe-coding prompt pack.</p></a>
 <a class="card" href="{NEWS}" target="_blank" rel="noopener"><strong>✉️ Cloudy newsletter</strong><p class="muted" style="margin:.4rem 0 0">The daily AI agent changelog, plus new prompts from this library.</p></a></div></section>
 <section class="section faq"><h2>FAQ</h2>{''.join(f'<details><summary>{e(q)}</summary><p class="muted">{e(a)}</p></details>' for q,a in faqs)}</section>'''
     ld = [{"@context":"https://schema.org","@type":"WebSite","name":SITE,"url":BASE+'/',"description":"Free library of original AI agent prompts and configs.","publisher":ORG,
@@ -186,6 +188,7 @@ def build():
     body = f'''<p class="crumbs"><a href="../">Home</a> / About</p><section class="section prose"><h1>About Cloudy</h1>
 <p>Cloudy builds free, fast tools for people into AI, AI agents, vibe coding, tech and video games. The Prompt Library is a curated set of {len(PROMPTS)} original prompts and agent configs you can copy into ChatGPT, Claude, Cursor and other tools.</p>
 <p>Looking for the right product instead of a prompt? Try the <a href="{e(TOOLS_SITE)}">Cloudy AI Tool Finder</a> — a 30-second quiz and directory of real AI tools.</p>
+<p>Want a playable starting point? <a href="{e(KITS_SITE)}">Cloudy Game Dev Kits</a> are free, MIT-licensed games with a demo, a zip, and a prompt pack.</p>
 <h2>How we write prompts</h2><ul><li>Every prompt is original Cloudy writing. We do not copy copyrighted prompt packs or vendor system prompts.</li><li>Each one is written to be useful on its own: a clear job, constraints, and a defined output.</li><li>They are starting points. Adapt the bracketed placeholders to your project.</li></ul>
 <h2>Affiliate disclosure</h2><p>Some outbound links may be affiliate links, which means Cloudy may earn a commission at no extra cost to you. Affiliate links are marked with <code>rel="sponsored"</code> and never change how prompts are written or featured.</p>
 <h2 id="sponsor">Sponsor Cloudy</h2><p>Want your AI tool in front of builders and vibe coders? Sponsor slots are available on the site and in the Cloudy newsletter. Send a DM to <a href="https://x.com/{X_HANDLE}" target="_blank" rel="noopener">@{X_HANDLE}</a> on X.</p>
@@ -201,7 +204,7 @@ def build():
     (out/'robots.txt').write_text(f'User-agent: *\nAllow: /\n\n# AI crawlers welcome\nUser-agent: GPTBot\nAllow: /\nUser-agent: OAI-SearchBot\nAllow: /\nUser-agent: ChatGPT-User\nAllow: /\nUser-agent: ClaudeBot\nAllow: /\nUser-agent: Claude-SearchBot\nAllow: /\nUser-agent: PerplexityBot\nAllow: /\nUser-agent: Google-Extended\nAllow: /\n\nSitemap: {BASE}/sitemap.xml\n')
     L = [f'# {SITE}', '', f'> Free library of original, copy-ready AI agent prompts and configs. {len(PROMPTS)} prompts across {len(CATS)} categories. Run by Cloudy.', '',
          'Data is available as JSON at ' + BASE + '/data/prompts.json (fields: id, title, category, summary, howToUse, worksWith, tags, body).', '', '## Main pages',
-         f'- [Home]({BASE}/): search and featured prompts', f'- [Library]({BASE}/prompts/): searchable directory', f'- [Full prompt list for LLMs]({BASE}/llms-full.txt)', f'- [About & disclosure]({BASE}/about/)', f'- [Cloudy AI Tool Finder]({TOOLS_SITE})', '', '## Categories']
+         f'- [Home]({BASE}/): search and featured prompts', f'- [Library]({BASE}/prompts/): searchable directory', f'- [Full prompt list for LLMs]({BASE}/llms-full.txt)', f'- [About & disclosure]({BASE}/about/)', f'- [Cloudy AI Tool Finder]({TOOLS_SITE})', f'- [Cloudy Game Dev Kits]({KITS_SITE})', '', '## Categories']
     L += [f'- [{v}]({BASE}/category/{k}/): {CAT_BLURB[k]}' for k,v in CATS.items()]
     L += ['', '## Prompts'] + [f'- [{p["title"]}]({BASE}/prompt/{p["id"]}/): {p["summary"]}' for p in PROMPTS]
     (out/'llms.txt').write_text('\n'.join(L)+'\n')
