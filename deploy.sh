@@ -20,9 +20,9 @@ TMP=$(mktemp -d); cp -r dist/. "$TMP"/
 ( cd "$TMP" && git init -q -b gh-pages && git config user.name Cloudy && git config user.email "$EMAIL" && git add -A && git commit -q -m "Deploy $(date -u +%FT%TZ)" && git push -q -f "https://github.com/$LOGIN/$REPO.git" gh-pages )
 rm -rf "$TMP"
 if ! gh api "repos/$LOGIN/$REPO/pages" >/dev/null 2>&1; then
-  gh api -X POST "repos/$LOGIN/$REPO/pages" -f "source[branch]=gh-pages" -f "source[path]=/" >/dev/null
+  gh api -X POST "repos/$LOGIN/$REPO/pages" -f "source[branch]=gh-pages" -f "source[path]=/" >/dev/null 2>&1 || true
 fi
-gh api -X PUT "repos/$LOGIN/$REPO" -f homepage="$SITE_URL/" >/dev/null 2>&1 || gh repo edit "$LOGIN/$REPO" --homepage "$SITE_URL/" >/dev/null || true
+gh repo edit "$LOGIN/$REPO" --homepage "$SITE_URL/" >/dev/null 2>&1 || true
 echo "REPO=https://github.com/$LOGIN/$REPO"
 echo "SITE=$SITE_URL/"
 for i in $(seq 1 40); do c=$(curl -s -o /dev/null -w "%{http_code}" "$SITE_URL/"); echo "try $i: $c"; [ "$c" = 200 ] && break; sleep 15; done
