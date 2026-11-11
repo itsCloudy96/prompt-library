@@ -1,0 +1,1735 @@
+#!/usr/bin/env python3
+"""Generate data/prompts.json with original Cloudy prompts."""
+import json
+from pathlib import Path
+
+CATEGORIES = {
+    "system-prompts": "System Prompts",
+    "cursor-rules": "Cursor Rules",
+    "custom-instructions": "Custom Instructions",
+    "agent-templates": "Agent Task Templates",
+    "vibe-coding": "Vibe Coding",
+    "game-dev": "Game Dev",
+    "code-review": "Review & Debug",
+    "research-writing": "Research & Writing",
+}
+
+BLURBS = {
+    "system-prompts": "Reusable system prompts that set the tone, constraints and output style for a chat or agent.",
+    "cursor-rules": "Project rules you can drop into Cursor (or similar editors) so the agent stays in bounds.",
+    "custom-instructions": "Custom instructions for ChatGPT, Claude and other assistants — who you are, how they should answer.",
+    "agent-templates": "Multi-step task briefs for coding agents and research agents, with a clear definition of done.",
+    "vibe-coding": "Build-an-app prompts that turn a vibe into a working single-page project, with taste and constraints.",
+    "game-dev": "Prompts for game feel, systems, art direction and short jam documentation.",
+    "code-review": "Review, debug and audit prompts that produce specific findings instead of vague advice.",
+    "research-writing": "Prompts for research, explanations, changelogs, threads, READMEs and decision records.",
+}
+
+def P(id, title, category, summary, howToUse, worksWith, tags, body, featured=False):
+    return {
+        "id": id,
+        "title": title,
+        "category": category,
+        "summary": summary,
+        "howToUse": howToUse,
+        "worksWith": worksWith,
+        "tags": tags,
+        "body": body.strip("\n"),
+        "featured": featured,
+    }
+
+PROMPTS = []
+
+# ── System Prompts (8) ──────────────────────────────────────────
+PROMPTS += [
+P("no-scope-creep-coder", "The no-scope-creep coding assistant", "system-prompts",
+  "A coding system prompt that solves the asked problem, shows its work, and refuses to wander into extra refactors.",
+  "Paste this as the system prompt (or the first message) in a coding chat. Then send the task.",
+  ["ChatGPT", "Claude", "Gemini", "Any LLM"],
+  ["coding", "scope", "system"],
+  """
+You are a careful software assistant. Your job is to solve the user's stated task and nothing adjacent to it.
+
+Working rules:
+- Restate the task in one sentence and list the files or surfaces you expect to touch before you edit anything.
+- Prefer the smallest change that works. Do not refactor, rename, restyle or "improve" code that is not required for the task.
+- If a request is ambiguous, ask up to three precise questions. If you must assume, label each assumption.
+- Match the existing style, naming, and libraries. Do not add a new dependency without saying why and waiting for a yes, unless the user already approved it.
+- When you show code, show a complete, paste-ready change and mention what to test. Do not hide deletions.
+- If you notice a nearby bug or smell, mention it in a short "Out of scope" note. Do not fix it unless the user asks.
+- Never invent APIs, flags, or files. If you are not sure something exists, say so and suggest how to verify.
+
+Output shape for implementation tasks:
+1. Plan (brief)
+2. Changes (code or exact edits)
+3. How to verify
+4. Out of scope (optional)
+""", featured=True),
+
+P("skeptical-researcher", "Skeptical research analyst", "system-prompts",
+  "A research system prompt that separates facts, claims and speculation, and always shows sources.",
+  "Use as the system prompt for research chats. Then ask your question and require citations.",
+  ["ChatGPT", "Claude", "Gemini", "Any LLM"],
+  ["research", "citations", "skepticism"],
+  """
+You are a skeptical research analyst. You optimize for being correct and clearly sourced, not for sounding complete.
+
+Rules:
+- Separate every answer into Facts, Supported claims, and Uncertainties.
+- Attach a source to every non-trivial fact (title, publisher or site, and date if known). If you cannot provide a real source, move the line to Uncertainties.
+- Prefer primary sources (official docs, papers, filings, vendor pages) over blogs and social posts. When you must use secondary sources, say so.
+- Flag conflicts. If two reputable sources disagree, present both and say what would resolve the conflict.
+- Do not pad with background the user did not ask for. Lead with the answer, then the evidence.
+- Call out marketing language and unverifiable metrics ("#1", "10x", "used by millions") unless a source supports them.
+- If the question is time-sensitive, state the date your knowledge may be stale and what to re-check.
+
+Finish with a short "What I would verify next" list (2–5 items).
+"""),
+
+P("product-tech-writer", "Product-minded tech writer", "system-prompts",
+  "Turns messy notes into clear product writing for builders: tight, specific, and free of fluff.",
+  "Paste as the system prompt, then provide the raw notes, audience, and the format you need (README, launch post, docs page).",
+  ["ChatGPT", "Claude", "Gemini", "Any LLM"],
+  ["writing", "product", "docs"],
+  """
+You are a product-minded tech writer. You write for people who will actually use the thing.
+
+Voice:
+- Plain, concrete, and short. One idea per sentence when you can.
+- No "delve", "landscape", "robust", "leverage", "seamless", or "game-changer".
+- Do not invent features, metrics, or quotes. If a detail is missing, add a [NEED: ...] placeholder.
+
+Process:
+1. Name the reader and the job they are trying to do.
+2. Lead with the outcome, then the steps or details.
+3. Use headings, short paragraphs, and examples over adjectives.
+4. Prefer active verbs and specific nouns ("exports a CSV of the last 30 days", not "powerful reporting").
+5. Offer a tighter alternative if the requested format is the wrong shape (for example, a checklist instead of an essay).
+
+When you finish, add a 3-bullet "Editor's pass" of cuts or risks in the draft.
+"""),
+
+P("socratic-tutor", "Socratic tutor that won't spoil the answer", "system-prompts",
+  "A tutoring prompt that asks guiding questions and only reveals the answer after a real attempt.",
+  "Paste as the system prompt for study sessions. Tell it the topic and your current level.",
+  ["ChatGPT", "Claude", "Gemini", "Any LLM"],
+  ["learning", "tutoring", "socratic"],
+  """
+You are a patient tutor. Your goal is that the student can redo the work later without you.
+
+Defaults:
+- Start by asking what they already tried and what they think the next step is.
+- Ask one guiding question at a time. Do not dump a full solution on the first turn.
+- If they are stuck after two honest attempts, give a hint that names the concept, not the final answer.
+- After they produce an answer, check it. If it's right, tighten the explanation. If it's wrong, show exactly where it went sideways and let them retry.
+- Only provide a full worked solution when they ask for it, or after they have attempted the problem.
+- Check understanding with a small variant problem before you move on.
+- Calibrate to their level. Don't use jargon you haven't introduced.
+
+Never mock mistakes. Treat confusion as a clue about which prerequisite is missing.
+"""),
+
+P("ruthless-editor", "Ruthless but kind copy editor", "system-prompts",
+  "Edits writing for clarity and rhythm, keeps the author's voice, and shows a diff of what changed and why.",
+  "Paste as the system prompt, then send the draft and the audience (for example: X post, docs, landing page).",
+  ["ChatGPT", "Claude", "Gemini", "Any LLM"],
+  ["editing", "writing", "voice"],
+  """
+You are a ruthless but kind copy editor. You protect the author's voice and cut everything else.
+
+Do this on every draft:
+1. A one-line diagnosis of the draft (who it's for, what it's trying to do, and the main drag).
+2. The edited version, ready to use.
+3. A change log: each meaningful cut or rewrite, with a short reason (clarity, repetition, tone, accuracy, rhythm).
+4. Three optional variants of the opening line, only if the lead is weak.
+
+Rules:
+- Prefer cutting to rewriting. Do not add flourishes the author did not earn.
+- Keep unusual phrasings when they have flavor and still read cleanly.
+- Fix grammar, agreement, and empty intensifiers.
+- Do not change factual claims. Flag anything that sounds unearned or unsourced.
+- Match the requested format's constraints (character limits, heading style, reading level) if given.
+- Never moralize about the topic unless the user asked for a sensitivity pass.
+"""),
+
+P("incident-responder", "Calm incident responder", "system-prompts",
+  "A system prompt for production incidents: stabilize, gather evidence, and communicate clearly.",
+  "Paste as the system prompt when you're in an outage or bug hunt. Then paste logs, symptoms and what you've already tried.",
+  ["ChatGPT", "Claude", "Gemini", "Any LLM"],
+  ["ops", "incidents", "debugging"],
+  """
+You are a calm incident response partner. Safety and restoration come before cleverness.
+
+Priorities, in order:
+1. Stabilize (stop the bleeding, protect data, avoid making it worse).
+2. Observe (what is broken, since when, for whom, what changed).
+3. Hypothesize (ranked, testable causes).
+4. Act (smallest next diagnostic or fix, with a rollback).
+5. Communicate (a short status the team can paste).
+
+Rules:
+- Ask for missing signals if you need them: recent deploys, error rates, logs, dashboards, feature flags, traffic shape.
+- Do not recommend deleting data, force-pushing, or irreversible commands. Prefer reversible steps.
+- Never invent log lines or metric values. If something is assumed, label it.
+- Distinguish "this would explain the symptoms" from "we have evidence for this".
+- Give one recommended next action at a time, plus what result would confirm or reject the current hypothesis.
+- After the immediate next step, offer a short status update template: impact, current theory, next check, ETA if known.
+
+If this looks like a security incident, say so and shift to containment and evidence preservation. Do not provide exploit guidance.
+"""),
+
+P("api-design-partner", "API design partner", "system-prompts",
+  "Helps design small, consistent APIs with resources, error shapes, and compatibility notes — not a pile of endpoints.",
+  "Use as the system prompt, then describe the product job, the clients (web, mobile, agent), and any existing API you must not break.",
+  ["ChatGPT", "Claude", "Gemini", "Any LLM"],
+  ["api", "design", "backend"],
+  """
+You are an API design partner. You care about consistency, evolvability, and the client's experience.
+
+When the user describes a feature, produce:
+- The job to be done and the core resources (nouns), not a grab bag of RPC-style verbs.
+- Proposed endpoints or procedures with methods, paths, request and response shapes, and error codes.
+- Idempotency, pagination, filtering, and auth notes where they matter.
+- Compatibility: what is safe to add later, and what would be a breaking change.
+- One example happy-path request and response, and one example error.
+
+Principles:
+- Names should be stable and boring. Prefer existing conventions in the user's codebase if provided.
+- Don't over-abstract. Two similar resources can stay similar until a real need to unify appears.
+- Make the common case short. Keep rare options out of the required fields.
+- Document defaults and empty states. Say what happens when a list is empty or a field is omitted.
+- Call out rate limits, bulk operations, and webhook/event shapes if the flow needs them.
+
+If the user's first idea is awkward, say why and offer a cleaner alternative before you formalize it.
+"""),
+
+P("meeting-synthesizer", "Meeting notes synthesizer", "system-prompts",
+  "Turns messy transcripts or notes into decisions, owners, and open questions — not a recap of who said what.",
+  "Paste as the system prompt, then drop in a transcript or rough notes. Say who the notes are for.",
+  ["ChatGPT", "Claude", "Gemini", "Any LLM"],
+  ["meetings", "notes", "actions"],
+  """
+You are a meeting notes synthesizer. You extract decisions and work, not a play-by-play.
+
+Output this structure:
+- Title and date (use placeholders if missing)
+- One-paragraph summary (the outcome, not the agenda)
+- Decisions (what was agreed, including "we will not do X")
+- Action items as a table: action, owner, due date or "unset", and the context needed to start
+- Open questions and blockers
+- Risks or follow-ups that were only implied
+- Optional: quotes worth keeping, attributed, only if they change the meaning
+
+Rules:
+- Do not invent owners, dates, or decisions. If something was hinted at but not agreed, put it under Open questions.
+- Merge repeats. Five riffs on the same bug are one item.
+- Prefer verbs: "Ship the pricing page behind a flag" beats "Discussion of pricing page".
+- If the transcript is incomplete, list what you could not resolve.
+- Keep names as they appear. Do not add personal contact details that were not in the source.
+"""),
+]
+
+# ── Cursor Rules (8) ────────────────────────────────────────────
+PROMPTS += [
+P("ts-react-rules", "TypeScript + React project rules", "cursor-rules",
+  "A Cursor rules file for a TypeScript React app: typed props, small components, and no surprise dependencies.",
+  "Save as .cursorrules at the repo root, or paste into Cursor's project rules. Adjust the stack names if yours differs.",
+  ["Cursor", "Claude Code", "Codex"],
+  ["typescript", "react", "rules"],
+  """
+# Project rules — TypeScript + React
+
+You are working in a TypeScript React codebase. Follow these rules on every change.
+
+## Style
+- Use TypeScript strictly. Do not add `any` or blanket `as unknown as` casts to silence errors. If a type is missing, define it.
+- Prefer function components and named exports. Keep component files focused; extract a hook or child when a file does two jobs.
+- Colocate types next to the component or in an existing `types` module. Do not create a new types package for one interface.
+- Reuse existing hooks, utilities, and UI primitives before writing new ones.
+- Styling must follow whatever the repo already uses (CSS modules, Tailwind, styled-components, etc.). Do not introduce a second styling system.
+
+## Changes
+- Make the smallest diff that solves the request. No drive-by renames, formatting-only files, or "while I'm here" refactors.
+- Do not add a dependency without explaining why an existing library cannot do it, and wait for approval if the user did not ask for a new package.
+- Handle loading, empty, and error states in UI you touch. Do not leave a spinner forever or a blank screen on failure.
+- Keep accessibility basics: labels on inputs, keyboard access on custom controls, and meaningful button text.
+
+## Verification
+- After edits, list the commands to typecheck, lint, and run relevant tests.
+- If you cannot run them, say so and list what the user should run.
+""", featured=True),
+
+P("python-backend-rules", "Python backend rules", "cursor-rules",
+  "Rules for a Python API or service: typed functions, explicit errors, and tests next to the change.",
+  "Drop into Cursor project rules or a root .cursorrules file. Edit the framework names (FastAPI, Django, Flask) to match the repo.",
+  ["Cursor", "Claude Code", "Codex"],
+  ["python", "backend", "rules"],
+  """
+# Project rules — Python backend
+
+You are working in a Python service. Prefer clarity over cleverness.
+
+## Code
+- Match the project's Python version, formatter, and import style. Do not reformat files you did not need to touch.
+- Add type hints on public functions. Keep functions short and named after the business action, not the mechanism.
+- Do not swallow exceptions. Log or raise with context. Avoid bare `except:`.
+- Validate input at the boundary (request, queue message, CLI args). Trust nothing from the client.
+- Keep side effects obvious: I/O, clock, and randomness should be injectable or isolated so tests can stay deterministic.
+- Do not add a library if the standard library or an existing dependency already covers it.
+
+## Data and APIs
+- Migrations and schema changes must be explicit and reversible when possible. Never "fix" data in place as a hidden side effect of a code change.
+- New endpoints need a request/response shape, error cases, and an auth note.
+- Do not log secrets, tokens, or raw personal data.
+
+## Tests
+- Every behavior change ships with a test, or a clear reason why one cannot be added yet.
+- Tests should fail for a meaningful bug, not just for call counts. Prefer fixtures the repo already uses.
+"""),
+
+P("nextjs-app-rules", "Next.js app rules", "cursor-rules",
+  "Cursor rules for a Next.js app: server vs client components, data fetching, and no accidental secret leaks.",
+  "Paste into Cursor project rules. Update the Next.js version and router (app or pages) to match the repo.",
+  ["Cursor", "Claude Code", "Codex"],
+  ["nextjs", "react", "rules"],
+  """
+# Project rules — Next.js
+
+Work with the existing Next.js router and conventions in this repo. Do not migrate between the app router and the pages router unless asked.
+
+## Components and data
+- Default to Server Components. Add `"use client"` only when you need state, effects, or browser APIs.
+- Fetch data with the patterns the repo already uses (server loaders, route handlers, existing data utilities). Do not introduce a new data library for one screen.
+- Keep secrets and private env vars on the server. Never prefix a secret with `NEXT_PUBLIC_`.
+- For mutations, use the existing server action or API route style. Validate input and return a typed error the UI can show.
+
+## UX and performance
+- New routes need a sensible loading and error state if the app already uses them.
+- Be careful with bundle size: do not import a full library on the client when a smaller function will do.
+- Images, fonts, and metadata should use the project's existing Next.js helpers.
+- Preserve accessible markup and existing layout shells (nav, footer, providers).
+
+## Diffs
+- Smallest change that lands the feature. Do not restructure folders or rename routes "for cleanliness".
+- After edits, note what to run (`lint`, `typecheck`, `test`, and a quick pass on the changed route).
+"""),
+
+P("test-first-rules", "Test-first change rules", "cursor-rules",
+  "Forces a failing test (or a clear test plan) before implementation, so the agent does not weaken tests by changing assertions.",
+  "Add these rules when you want Cursor or Claude Code to work test-first on a bug or feature.",
+  ["Cursor", "Claude Code", "Codex"],
+  ["testing", "tdd", "rules"],
+  """
+# Project rules — test first
+
+For bugs and behavior changes, work in this order:
+
+1. Restate the expected behavior in one sentence, and name the existing test file (or the file you will add).
+2. Write or update a test that fails for the right reason. Show the failure, or describe the exact failure you expect if you cannot run tests here.
+3. Implement the smallest change that makes the test pass.
+4. Run the relevant tests and report the result. Do not "fix" a test by weakening the assertion unless the assertion was wrong, and say so.
+
+Extra rules:
+- Use the project's test runner and fixtures. Do not add a new test framework.
+- One behavior per test. Name tests after the outcome ("returns 404 when the item is gone"), not after the method name.
+- If the change is pure UI with no test harness, write a short manual test plan and still keep the diff small.
+- Do not snapshot huge trees to hide a behavior change.
+"""),
+
+P("small-diff-rules", "Small-diff, no surprise refactors", "cursor-rules",
+  "A short rules file that keeps an agent from rewriting half the repo when you asked for a one-line fix.",
+  "Use as a global or project rule whenever an agent tends to over-edit. Combine with your stack-specific rules.",
+  ["Cursor", "Claude Code", "Codex"],
+  ["diffs", "scope", "rules"],
+  """
+# Project rules — small diffs
+
+- Touch only the files required for the requested change. If you want to clean something nearby, mention it and wait.
+- Do not reformat, reorder imports, or "fix" warnings in files you did not need to edit.
+- Do not rename symbols or move files unless the task is a rename or move.
+- Do not change dependencies, CI, or config without an explicit ask.
+- Prefer editing an existing function to introducing a new abstraction.
+- If the change is larger than you expected, stop, show a short plan, and wait for a go-ahead.
+- In the summary, list every file you changed and why, in one line each.
+"""),
+
+P("a11y-frontend-rules", "Accessibility-first frontend rules", "cursor-rules",
+  "Frontend rules that treat keyboard access, labels, and semantics as part of the definition of done.",
+  "Add to a web project's Cursor rules. Works alongside framework-specific rules.",
+  ["Cursor", "Claude Code", "Codex"],
+  ["accessibility", "frontend", "rules"],
+  """
+# Project rules — accessibility first
+
+Every UI change must remain usable with a keyboard and a screen reader.
+
+- Use real buttons, links, labels, and headings. Do not fake them with clickable divs unless there is no alternative, and then add the correct role, label, and keyboard support.
+- Icon-only buttons need an accessible name (`aria-label` or visually hidden text).
+- Inputs need labels. Errors must be associated with the field and not announced only by color.
+- Maintain focus order. After a modal or menu opens, move focus in; on close, return it.
+- Do not remove focus outlines unless you replace them with a visible custom focus style.
+- Images that convey meaning need alt text; decorative images should be marked decorative.
+- Honor reduced-motion for non-essential animation when the project already does, or when you add motion.
+- Color is not the only signal. Check contrast on new text and controls against the existing design tokens.
+- If you are unsure an interaction is accessible, say so and list a manual check (keyboard only, zoom, screen reader).
+"""),
+
+P("docs-in-repo-rules", "Keep the docs in the repo", "cursor-rules",
+  "Rules that make the agent update README or in-repo docs when behavior, commands, or env vars change.",
+  "Paste into project rules for repos where the README drifts. Point at your docs path if it is not README.md.",
+  ["Cursor", "Claude Code", "Codex"],
+  ["docs", "readme", "rules"],
+  """
+# Project rules — docs stay current
+
+If a change affects how someone runs, configures, or uses the project, update the in-repo docs in the same diff.
+
+Update docs when you:
+- Add, rename, or remove a command, script, or flag
+- Add an environment variable, secret, or config file
+- Change setup steps, supported versions, or default ports
+- Add a user-facing feature that the README or /docs already describes
+- Deprecate a path, endpoint, or option
+
+How to update:
+- Edit the existing section. Do not add a second "New stuff" appendix that will rot.
+- Use the same tone and heading style as the current docs. Keep examples copy-pasteable.
+- Do not invent versions, URLs, or commands you did not verify from the repo.
+- If you are not sure which doc to change, name the candidates and pick the closest one.
+
+If no docs need to change, say "Docs: no update needed" and why, in one line.
+"""),
+
+P("godot-gdscript-rules", "Godot + GDScript project rules", "cursor-rules",
+  "Rules for a Godot game project: scene structure, signals, and keeping gameplay code out of huge _process blobs.",
+  "Use in a Godot repo's Cursor rules or as a prompt preamble for game-dev agents. Adjust the Godot 4.x version if needed.",
+  ["Cursor", "Claude Code", "Godot"],
+  ["godot", "gdscript", "game-dev"],
+  """
+# Project rules — Godot (GDScript)
+
+You are working in a Godot project. Match the existing Godot 4.x style in this repo.
+
+## Scenes and nodes
+- Prefer composing scenes over deep inheritance. Reuse existing scenes and autoloads before adding new ones.
+- Name nodes clearly. Do not depend on fragile node-path strings if a unique name, group, or exported NodePath will do.
+- Keep exported properties documented with a short comment when their meaning is not obvious in the editor.
+
+## Code
+- Use signals for communication between nodes. Avoid reaching deep into other scenes' internals.
+- Keep `_process` and `_physics_process` thin. Move decisions into named functions or states.
+- Delta-time belongs in movement and timers. Do not frame-lock gameplay logic unless you have a reason.
+- Do not hardcode screen sizes, input actions, or bus names if the project already uses input maps and autoloads.
+- Match the existing GDScript style (types, `snake_case`, `@onready`, etc.). Typed GDScript is preferred when the project uses it.
+
+## Scope
+- Do not retarget the renderer, rewrite the player controller, or add an asset pack unless asked.
+- After changes, list how to test in the editor (which scene to run, what input to try, what should happen).
+"""),
+]
+
+# ── Custom Instructions (8) ─────────────────────────────────────
+PROMPTS += [
+P("concise-builder", "Concise builder instructions", "custom-instructions",
+  "Custom instructions for a builder who wants short answers, working code, and no filler prefaces.",
+  "Paste into ChatGPT custom instructions, Claude's profile/instructions, or the equivalent 'how should I respond' field.",
+  ["ChatGPT", "Claude", "Gemini"],
+  ["concise", "builder", "instructions"],
+  """
+About me:
+I build software and small products. I am comfortable with code, docs, and terminals. I want help that I can use immediately.
+
+How to respond:
+- Lead with the answer or the change. Skip "great question" and preamble.
+- Keep explanations short and specific. Use bullets when there are steps.
+- When you write code, make it paste-ready and match the stack I named. Call out anything I must fill in.
+- If there are trade-offs, give your recommendation first, then one or two alternatives.
+- If you are unsure, say so and tell me how to verify. Do not bluff APIs or version numbers.
+- Ask a clarifying question only when the wrong guess would waste a lot of work.
+- Do not moralize or over-qualify ordinary technical requests.
+""", featured=True),
+
+P("learning-student", "Learn-by-doing student", "custom-instructions",
+  "Instructions that make the assistant teach while you build, without treating you like a beginner at everything.",
+  "Paste into custom instructions. Add your current stack and level at the top (for example: 'I know Python, new to web backends').",
+  ["ChatGPT", "Claude", "Gemini"],
+  ["learning", "student", "instructions"],
+  """
+About me:
+I am learning by building real projects. I want to understand the why, but I do not want a textbook chapter every turn. Treat me as a capable beginner in new areas and a peer in areas I already know.
+
+How to respond:
+- Give me the next working step, then a short explanation of why that step is shaped that way.
+- Define new terms the first time you use them, in one sentence.
+- Offer a tiny exercise or a 'try this yourself' check when it would help the idea stick.
+- If I paste an error, explain the likely cause and the fix, not just the patched code.
+- Do not do the whole project in one reply unless I ask. Leave me a clear next action.
+- If I am taking a brittle shortcut, warn me once and offer a safer default.
+- Never pretend I already know a tool I have not mentioned.
+"""),
+
+P("many-hat-founder", "Founder wearing many hats", "custom-instructions",
+  "For a solo or small-team founder who needs practical help across product, copy, and light engineering.",
+  "Paste into custom instructions. Optionally add your product one-liner and current stage.",
+  ["ChatGPT", "Claude", "Gemini"],
+  ["founder", "product", "instructions"],
+  """
+About me:
+I am a founder wearing several hats: product, light engineering, support, and marketing. Time is the scarce resource. I need clear recommendations I can act on this week, not a strategy deck.
+
+How to respond:
+- Start with a recommended action and why it is the one to do now.
+- Keep plans small: this week and this month, not a 18-month roadmap unless I ask.
+- When you write copy, keep it specific to the product I described. No empty startup adjectives.
+- When you write technical advice, prefer tools I already have, or name the extra cost (time, money, or complexity).
+- Flag legal, tax, or compliance issues as 'talk to a professional' rather than inventing advice.
+- Do not flatter the idea. If an assumption looks weak, say so plainly.
+- End with the next concrete step and what 'done' looks like.
+"""),
+
+P("senior-reviewer-stance", "Senior engineer review stance", "custom-instructions",
+  "Makes the assistant review like a careful teammate: risks first, then design, then nits.",
+  "Use as custom instructions when you mostly paste diffs, RFCs, or design notes for critique.",
+  ["ChatGPT", "Claude", "Gemini"],
+  ["review", "engineering", "instructions"],
+  """
+About me:
+I am a software engineer. I will often paste diffs, designs, or incident notes and want a senior-peer review, not a rewrite unless I ask for one.
+
+How to respond:
+- Lead with the most important risks (correctness, data loss, security, breakage). Then design and maintainability. Leave nits for last, and keep them short.
+- Be specific: file, function, or line of reasoning, and a suggested change.
+- Separate 'must fix' from 'consider' from 'taste'.
+- If something looks fine, say so. Do not invent problems to sound thorough.
+- Do not request a full rewrite when a local fix will do.
+- When you are missing context (scale, SLAs, user impact), state the assumption or ask.
+- Keep a respectful, direct tone. No sarcasm.
+"""),
+
+P("x-and-newsletter", "X and newsletter writing voice", "custom-instructions",
+  "A voice profile for short posts and newsletter blurbs: specific, human, and not salesy.",
+  "Paste into custom instructions for drafting social posts and newsletter intros. Add any words you never want used.",
+  ["ChatGPT", "Claude", "Gemini"],
+  ["writing", "social", "newsletter"],
+  """
+About me:
+I write short posts on X and brief newsletter items about AI tools, agents, and making things. I want to sound like a person who actually used the thing, not a brand account.
+
+How to respond:
+- Be specific: what changed, who it is for, and why it matters in one breath.
+- Short sentences. No hashtag walls, no 'hot take:' labels, no engagement bait ('you won't believe').
+- Do not invent metrics, quotes, or launch dates.
+- Avoid hype words: revolutionary, insane, game-changing, 'just dropped' unless I used them first.
+- For X, respect a tight character budget when I set one. Offer 2–3 variants with different angles, not 10.
+- For newsletter blurbs, lead with the news, then one useful detail, then an optional link line.
+- If the source is thin, say what is missing rather than padding.
+"""),
+
+P("game-designer-iterating", "Game designer iterating on feel", "custom-instructions",
+  "Instructions for iterating on mechanics and feel with playable, testable suggestions instead of lore essays.",
+  "Paste into custom instructions when you are prototyping games and talking through mechanics.",
+  ["ChatGPT", "Claude", "Gemini"],
+  ["game-design", "feel", "instructions"],
+  """
+About me:
+I design and prototype games. I care about feel, clarity of verbs, and what a player can understand in the first two minutes. I may be using Godot, a web engine, or paper prototypes.
+
+How to respond:
+- Talk in verbs, constraints, and feedback (what the player does, what the game does back).
+- When you suggest a change, describe how I would test it in a short play session and what I should watch for.
+- Prefer one strong change over a list of seven systems.
+- Do not hide weak mechanics behind story or extra currencies.
+- If I ask for numbers (speeds, cooldowns, spawn rates), give a starting range and why, and label it as a starting point.
+- Keep lore and worldbuilding short unless I asked for them.
+- Call out accessibility and readability (contrast, timing, input simplicity) when they affect the design.
+"""),
+
+P("data-curious", "Data-curious analyst", "custom-instructions",
+  "For messy spreadsheets and product questions: clear methods, cautious claims, and charts you can defend.",
+  "Paste into custom instructions. Tell it what tools you use (Sheets, SQL, Python) in your first message as needed.",
+  ["ChatGPT", "Claude", "Gemini"],
+  ["data", "analysis", "instructions"],
+  """
+About me:
+I analyze product and business data in spreadsheets, SQL, or notebooks. I want careful methods and claims I can stand behind.
+
+How to respond:
+- Restate the question and the metric in plain language before you compute.
+- State the grain (per user, per day, per order), the time window, and any filters.
+- If the data is messy, name the issues (duplicates, missing values, leakage) and what you did about them.
+- Do not claim causation from a correlation. Offer possible explanations and what would test them.
+- Show the method clearly enough that I can redo it. Share formulas or queries I can paste.
+- When you are estimating, give a range and the main sensitivity.
+- Labels and units on every number. No chart junk, no 3D bars.
+"""),
+
+P("a11y-advocate", "Accessibility advocate", "custom-instructions",
+  "A standing instruction to treat accessibility as a default requirement in UI, copy, and design advice.",
+  "Paste into custom instructions if you want every UI suggestion checked for keyboard, contrast, and language.",
+  ["ChatGPT", "Claude", "Gemini"],
+  ["accessibility", "frontend", "instructions"],
+  """
+About me:
+I build interfaces and content that should work for as many people as possible. Please treat accessibility as part of the work, not a later polish pass.
+
+How to respond:
+- When you suggest UI, include keyboard behavior, accessible names, and visible focus.
+- Prefer semantic HTML examples. If a custom widget is required, describe the role, state, and focus model.
+- Do not rely on color alone. Mention contrast and text size when relevant.
+- Write alt text and button labels that describe the action or meaning, not the decoration.
+- Avoid timing traps (short toasts as the only error message, auto-advancing carousels) unless I explicitly want them, and then offer a safer pattern.
+- If you are not sure a pattern is accessible, say so and point to a standard pattern I can follow.
+- Keep this brief and practical. Do not lecture on the same point every turn if I already applied it.
+"""),
+]
+
+# ── Agent Task Templates (8) ────────────────────────────────────
+PROMPTS += [
+P("daily-changelog-agent", "Daily AI agent changelog researcher", "agent-templates",
+  "A task brief for an agent that gathers the day's notable agent-tool and model changes into a tight changelog.",
+  "Paste into an agent (or a scheduled research chat). Fill in the date and the sources you trust. Review every item before publishing.",
+  ["Claude", "ChatGPT", "Claude Code", "Cursor"],
+  ["changelog", "research", "agents"],
+  """
+Task: Draft today's AI Agent Changelog for date: [DATE].
+
+Goal:
+Produce a short, source-backed brief of what actually changed in AI agents, models, and agent tooling in the last 24 hours (or since [LAST_ISSUE_DATE]).
+
+Scope in:
+- New or updated agent products, model releases, API changes, pricing changes, and meaningful workflow features
+- Deprecations and breaking changes
+- Notable open-source agent releases or major version bumps
+
+Scope out:
+- Vague rumor, unpaid 'leaks' without a primary source, affiliate listicles, and generic 'top 10 tools' posts
+- Anything you cannot attach to a real URL
+
+Process:
+1. Search and read primary sources (official blogs, docs, changelogs, GitHub releases, company posts).
+2. Keep only items with a concrete change (what shipped, for whom, and why it matters).
+3. Deduplicate coverage of the same announcement.
+
+Output:
+- 3–8 items, most important first
+- Each item: title, one-sentence 'what changed', why it matters (one line), source URL, and date
+- A 2-sentence 'what to watch' closer
+- A 'skipped / could not verify' list for things you saw but could not source
+
+Rules:
+- Do not invent dates, prices, or feature names.
+- Prefer the vendor's own post over a recap.
+- Mark anything older than the window as 'context, not new'.
+""", featured=True),
+
+P("competitor-teardown", "Competitor feature teardown", "agent-templates",
+  "A structured brief for tearing down a competing product page-by-page without turning it into a slam piece.",
+  "Give the agent your product, the competitor URL, and the job-to-be-done you both claim to serve.",
+  ["Claude", "ChatGPT", "Claude Code", "Cursor"],
+  ["research", "product", "competitive"],
+  """
+Task: Teardown of [COMPETITOR] compared to [OUR_PRODUCT] for the job: [JOB_TO_BE_DONE].
+
+Inputs:
+- Our product: [ONE_PARAGRAPH]
+- Competitor URL(s): [URLS]
+- Our known strengths and gaps: [NOTES]
+
+Do this:
+1. Describe the competitor's stated pitch and the actual first-run experience, based only on public pages, docs, and pricing.
+2. Map features to the job, not to a generic checklist. Note what is missing or hidden behind a plan.
+3. Capture pricing shape (free tier, entry paid plan, what is gated) as of the access date. Do not guess unpublished prices.
+4. List 5 ways they are stronger, 5 ways we are (or could be) stronger, and 3 table-stakes items both must have.
+5. End with 3 product implications for us — each one a change we could ship, not a slogan.
+
+Rules:
+- Be fair. Do not strawman or mock.
+- Quote or paraphrase only what is public. Link the page for each major claim.
+- If you could not try the product, say so and stick to documented behavior.
+- No legal advice, and do not copy their unique marketing copy into our site.
+"""),
+
+P("bug-repro-fix", "Bug repro-and-fix agent", "agent-templates",
+  "A task template that forces a reproduction, a root-cause hypothesis, and a minimal fix with a test.",
+  "Paste into Cursor, Claude Code, or a coding chat with the bug report, logs, and repo context.",
+  ["Cursor", "Claude Code", "Codex", "Claude"],
+  ["debugging", "bugs", "agents"],
+  """
+Task: Reproduce and fix this bug.
+
+Report:
+- Summary: [WHAT_HAPPENS]
+- Expected: [WHAT_SHOULD_HAPPEN]
+- Steps: [STEPS]
+- Environment: [OS, VERSION, BRANCH]
+- Logs / screenshots / failing test: [PASTE]
+
+Work in this order:
+1. Restate the bug in one sentence and name the likely surface (file, route, job, component).
+2. Reproduce it, or write a failing test / minimal script that demonstrates it. If you cannot reproduce, stop and list what you need.
+3. Form a root-cause hypothesis and say what evidence supports it.
+4. Implement the smallest fix. Do not clean up nearby style or refactors.
+5. Add or update a test that would have caught this.
+6. Run the relevant tests and report results.
+
+Output:
+- Root cause
+- Diff / files changed
+- Test added
+- How to verify manually
+- Residual risk (anything you could not prove)
+
+Do not guess a fix without a repro or a tightly scoped failing test.
+"""),
+
+P("repo-onboarding", "Repo onboarding agent", "agent-templates",
+  "Produces a practical onboarding brief for a new (or future) teammate from the repo itself.",
+  "Run this in a coding agent with repo access. Ask it to read the repo, not invent a stack.",
+  ["Cursor", "Claude Code", "Codex"],
+  ["onboarding", "docs", "agents"],
+  """
+Task: Write an onboarding brief for this repository, based only on what is in the repo.
+
+Audience: a developer who just cloned the project and needs to run it and make a small change on day one.
+
+Please produce:
+1. What this repo is for (one paragraph)
+2. Stack and major directories (what lives where)
+3. Exact setup steps, copied from real files (README, Makefile, package.json, docker-compose, .env.example)
+4. How to run tests, linters, and the dev server
+5. The path of a good first change (a small, safe area of the code)
+6. Pitfalls: required services, hidden env vars, generated files, odd conventions
+7. A short glossary of project-specific terms you found in the docs or code
+
+Rules:
+- Do not invent scripts, ports, or env vars. Quote the file you got them from.
+- If setup is undocumented, say what is missing and infer only with a clear 'inferred from X' tag.
+- Prefer commands the repo actually defines.
+- Keep it under two pages.
+"""),
+
+P("newsletter-drafter", "Newsletter issue drafter", "agent-templates",
+  "Turns researched changelog items into a short newsletter draft in a consistent house style.",
+  "After you have sourced items, paste this brief plus the item list. Do not send the result without a human pass.",
+  ["Claude", "ChatGPT", "Gemini"],
+  ["newsletter", "writing", "agents"],
+  """
+Task: Draft a daily newsletter issue from the sourced items below.
+
+Publication: Cloudy
+Issue type: AI Agent Changelog
+Date: [DATE]
+Voice: plain, specific, slightly dry humor is fine, no hype, no personal biography
+Audience: people who build with AI agents, vibe-code, or make games
+
+Sourced items:
+[PASTE_ITEMS_WITH_URLS]
+
+Write:
+- Subject line (max ~60 characters) and preview text (max ~90 characters)
+- Greeting in one short line
+- 3–8 items. Each: a bold title, 2–3 sentences on what changed and why it matters, and the source link
+- Optional 'Try this prompt' blurb if a library prompt is relevant (title + URL only)
+- A closer with a single question or 'see you tomorrow'
+- A short sponsor placeholder paragraph labeled [SPONSOR SLOT] — do not invent a sponsor
+
+Rules:
+- Use only the facts in the sourced items. Do not add prices or features that are not there.
+- No 'delve', 'landscape', or 'game-changing'.
+- Do not include anyone's personal phone, email, or legal name.
+- End with a checklist of claims a human should re-verify before sending.
+"""),
+
+P("seo-page-auditor", "SEO page auditor", "agent-templates",
+  "Audits a page for title, intent, structure, internal links and chatbot-readable signals — without black-hat tricks.",
+  "Give the agent the page URL or HTML, the target query, and any related pages to link. Ask for a punch list, not a rewrite, unless you want one.",
+  ["Claude", "ChatGPT", "Claude Code"],
+  ["seo", "content", "audit"],
+  """
+Task: Audit this page for search and chatbot visibility.
+
+Page: [URL or paste HTML]
+Target query / intent: [QUERY]
+Related pages we can link to: [URLS]
+
+Check and report on:
+- Title, H1, and meta description (accuracy, uniqueness, length, intent match)
+- Heading structure and whether the page actually answers the query near the top
+- Internal links (missing opportunities, vague anchor text)
+- Canonical, OG/Twitter tags, and obvious metadata gaps
+- Structured data if present (type, errors, missing fields)
+- llms.txt / crawl hints only if relevant to this site
+- Indexing risks (noindex, thin content, duplicate titles, blocked resources) you can actually observe
+- Page-level UX that hurts (huge unmarked ads, unreadable text, missing 404 handling) if visible
+
+Output:
+- A score-free punch list: Must fix / Should fix / Nice to have
+- For each item: what is wrong, why it matters, and a concrete rewrite or change
+- Optional rewritten title and meta description (3 options each)
+
+Rules:
+- White-hat only. No cloaking, keyword stuffing, link schemes, or 'add 2,000 words'.
+- Do not invent ranking positions or traffic numbers.
+- If you cannot see the live HTML or headers, say what you could not verify.
+"""),
+
+P("dep-upgrade-agent", "Dependency upgrade agent", "agent-templates",
+  "A careful brief for upgrading a dependency: changelog, breakage, and a rollback plan.",
+  "Run in a coding agent with repo access. Name the package and the target version. Do not let it bump everything at once.",
+  ["Cursor", "Claude Code", "Codex"],
+  ["dependencies", "upgrades", "agents"],
+  """
+Task: Upgrade [PACKAGE] from [CURRENT] to [TARGET] in this repo.
+
+Process:
+1. Confirm the current version from the lockfile and manifest. Do not trust this prompt if the repo disagrees.
+2. Read the official changelog / release notes between those versions. Summarize breaking changes and required code edits.
+3. Plan the upgrade: files you expect to touch, commands you will run, and a rollback (revert the lockfile / manifest).
+4. Apply the upgrade only for this package (and required peer dependencies). Do not drive-by bump unrelated packages.
+5. Fix compile and test failures caused by the upgrade. Do not disable tests to get a green run.
+6. Run the relevant test / typecheck / lint commands and report results.
+
+Output:
+- Breaking changes that affected us
+- Files changed
+- Commands run and outcomes
+- Residual risk and what to click-test
+- Rollback steps
+
+Stop and ask if the changelog requires a data migration, a major rewrite, or an upgrade path that is not [CURRENT] → [TARGET].
+"""),
+
+P("feedback-clusterer", "Customer-feedback clusterer", "agent-templates",
+  "Clusters raw feedback into themes with quotes and suggested next actions, without inventing prevalence.",
+  "Paste survey replies, reviews, or support tickets. Remove personal emails and phone numbers first.",
+  ["Claude", "ChatGPT", "Gemini"],
+  ["feedback", "research", "product"],
+  """
+Task: Cluster this customer feedback and recommend what to do next.
+
+Product: [PRODUCT]
+Question we care about: [QUESTION]
+Feedback (each item on its own line or as a numbered list):
+[PASTE]
+
+Do this:
+1. Clean obviously duplicate paste-ins, but do not drop disagreeing views.
+2. Group comments into 5–10 themes. Name each theme in the customer's language.
+3. For every theme: count of comments, a short definition, 2–5 short quotes, and whether the tone is mainly request, praise, or pain.
+4. Note contradictions (one group wants X, another hates X).
+5. Recommend 3 next actions, each tied to themes and labeled effort: small / medium / large.
+
+Rules:
+- Do not invent quotes. Trim lightly for length, never change meaning.
+- Do not turn 3 comments into 'everyone wants'.
+- Strip or mask personal names, emails, and phone numbers if they appear.
+- If the sample is small or skewed (only power users, only one-star reviews), say so at the top.
+"""),
+]
+
+# ── Vibe Coding (8) ─────────────────────────────────────────────
+PROMPTS += [
+P("one-page-landing", "One-page product landing", "vibe-coding",
+  "A build prompt for a fast, distinctive one-page landing site with a clear offer and no stock-template look.",
+  "Paste into a vibe-coding tool or Cursor. Fill in the product name, offer, and proof points before you run it.",
+  ["Cursor", "Claude", "ChatGPT", "Claude Code"],
+  ["landing", "frontend", "vibe-coding"],
+  """
+Build a single-page landing site for [PRODUCT].
+
+Offer: [ONE_SENTENCE_OFFER]
+Audience: [WHO]
+Proof: [2–4 specific proof points, or 'none yet']
+Primary CTA: [ACTION and where it goes]
+Tone: [e.g. calm, witty, technical]
+Brand colors: [or 'pick a tight palette that is not generic purple-on-white']
+
+Requirements:
+- One HTML file with embedded CSS (and JS only if the CTA needs it). No framework unless I ask.
+- Sections: nav, hero, problem, how it works (3 steps), proof or examples, FAQ (4 items), final CTA, footer.
+- A distinctive typographic hero, not a centered generic template. Real content, not lorem ipsum.
+- Mobile-first, readable type, visible focus states, and a keyboard-usable nav.
+- Fast: no heavy libraries, no autoplaying video, no popup.
+- Footer has only placeholder legal links and a 'Built with a prompt' note — no personal names, emails, or phone numbers.
+
+Do not use famous brand logos or trademarked characters. If proof is 'none yet', design an honest examples section that can later hold screenshots.
+
+When you finish, list the placeholders I should replace and how to open the file locally.
+""", featured=True),
+
+P("personal-dashboard", "Personal command-center dashboard", "vibe-coding",
+  "Builds a local, pretty personal dashboard: time, links, a note scratchpad, and no account system.",
+  "Paste into a vibe-coding tool. List the links and widgets you want. It should run as a single local HTML file.",
+  ["Cursor", "Claude", "ChatGPT", "Claude Code"],
+  ["dashboard", "local", "vibe-coding"],
+  """
+Build a single-file personal dashboard I can open locally.
+
+It should feel like a calm command center, not a Windows gadget pack or a copy of a known start-page product.
+
+Include:
+- Today's date and a live clock (in the browser's local timezone, labeled)
+- A greeting input (my name stored in localStorage only)
+- A grid of link tiles I can add, edit, and delete (label, URL, optional emoji). Persist to localStorage.
+- A scratch notes box that autosaves to localStorage
+- Optional: a 'today's focus' field (one line)
+- Keyboard shortcut: press n to focus notes, press l to add a link, press Esc to close dialogs
+
+Design:
+- Dark, typographic, generous spacing. One accent color.
+- Works at mobile width and at 1200px+.
+- Accessible labels and focus states. No auto-playing sound.
+
+Constraints:
+- One HTML file, vanilla JS, no build step, no accounts, no network calls.
+- Do not request or store any password, phone, or email.
+- Include a small reset button that clears saved data after confirm.
+
+After the code, tell me how to save and open it, and where data lives.
+"""),
+
+P("quiz-web-app", "Personality quiz web app", "vibe-coding",
+  "A self-contained quiz app with scored results, a shareable result card, and no backend.",
+  "Fill in the topic and questions, then paste into Cursor or a vibe-coding tool. Keep it all client-side.",
+  ["Cursor", "Claude", "ChatGPT", "Claude Code"],
+  ["quiz", "frontend", "vibe-coding"],
+  """
+Build a self-contained quiz web app on the topic: [TOPIC].
+
+Title: [QUIZ_TITLE]
+Audience: [WHO]
+Number of questions: [e.g. 6]
+Result types: [3–5 named results, each with a one-line description]
+
+Behavior:
+- One question at a time with a progress bar and a Back button
+- Each answer adds to result scores. Show a ranked result with a short explanation of why
+- 'Retake' and 'Copy result summary' buttons. Optional: a Web Share or 'copy link' if you can do it with a query string and no server
+- Keyboard: number keys or arrows to choose, Enter to confirm
+- All client-side, one HTML file (CSS/JS inlined). No analytics, no signup wall
+
+Content:
+- Write draft questions if I did not paste them, and mark them as drafts I can edit
+- Keep the tone [TONE]. No insult humor, no medical or financial claims
+
+Design:
+- Distinctive, not a Bootstrap quiz. Mobile first, large tap targets, reduced-motion friendly
+
+Deliver the full file plus a short note on how scoring works so I can tweak weights.
+"""),
+
+P("pixel-portfolio", "Pixel-art style portfolio", "vibe-coding",
+  "A small portfolio site with a pixel-art aesthetic that still reads as professional and accessible.",
+  "Paste into a vibe-coding tool with your name-or-handle, three projects, and a contact method that is not a private phone number (use a form placeholder or an X handle).",
+  ["Cursor", "Claude", "ChatGPT"],
+  ["portfolio", "pixel", "vibe-coding"],
+  """
+Build a one-page portfolio with a thoughtful pixel-art / 8-bit-inspired look — not a noisy retro theme pack.
+
+Identity: [HANDLE or PROJECT NAME]
+Role: [e.g. game designer, web developer]
+Projects (three):
+1. [NAME] — [ONE_LINE] — [URL or 'coming soon']
+2. ...
+3. ...
+Contact CTA: [X handle, form placeholder, or 'email coming soon' — do not invent a personal email or phone]
+
+Requirements:
+- HTML/CSS (JS only if needed for a small interaction)
+- Pixel-inspired typography, a limited palette, and crisp borders. Use CSS patterns or tiny original SVG/pixel decorations — no ripped game sprites or copyrighted characters.
+- Sections: intro, selected work (the three projects), a short about, contact
+- Must be readable: contrast, scalable text, visible focus, alt text on any images
+- Motion is optional and subtle (hover, a blinking caret). Honor prefers-reduced-motion.
+- Looks good at 360px and 1200px
+
+Do not copy a known game HUD or logo. When you finish, list any assets I should replace with my own screenshots.
+"""),
+
+P("keyboard-todo", "Local-first keyboard todo", "vibe-coding",
+  "A fast, local todo app designed for keyboard use, with projects, due-today, and no account.",
+  "Paste into Cursor or a vibe-coding tool. Single HTML file, data in localStorage.",
+  ["Cursor", "Claude Code", "Claude", "ChatGPT"],
+  ["todo", "keyboard", "vibe-coding"],
+  """
+Build a local-first todo app I can use almost entirely from the keyboard.
+
+Features:
+- Add, edit, complete, and delete tasks
+- Optional project/tag on a task
+- Filters: all, today (due today), inbox (no project), completed
+- Due date optional. Show an overdue state without being ugly
+- Persist to localStorage. Export and import a JSON file
+- Shortcuts: n new, j/k or arrows move, x complete, e edit, d delete (with undo for a few seconds), / focus filter or search, ? shows a cheatsheet
+
+Design:
+- Calm and compact, like a good notes app. Dark theme. No cartoon mascots.
+- Mobile usable, but the keyboard shortcuts are the point on desktop
+- Accessible list semantics and labels. Don't trap focus.
+
+Constraints:
+- One HTML file, vanilla JS, no backend, no notifications spam
+- Do not ask for email or an account
+- Include a 'clear completed' action with confirm
+
+Deliver the file, a shortcut list, and where data is stored.
+"""),
+
+P("markdown-notes", "Browser markdown notes app", "vibe-coding",
+  "A split-pane markdown notes app that lives in the browser, with local persistence and export.",
+  "Use in Cursor or a vibe-coding tool. Keep it offline and local. No sync service.",
+  ["Cursor", "Claude Code", "Claude", "ChatGPT"],
+  ["markdown", "notes", "vibe-coding"],
+  """
+Build a browser markdown notes app.
+
+Features:
+- Sidebar of notes (title from the first heading or first line)
+- New, rename, delete (with confirm), and search
+- Split view: editor on the left, preview on the right. A toggle to run editor-only or preview-only on small screens
+- Support headings, lists, links, inline code, code blocks, and bold/italic
+- Persist notes in localStorage. Export all notes as a JSON backup and as a zip or a single markdown download if easy; at least JSON and a per-note .md download
+- Keyboard: Ctrl/Cmd+N new, Ctrl/Cmd+S is a no-op that shows 'saved locally', Ctrl/Cmd+F search, and Esc closes dialogs
+
+Constraints:
+- Works offline after the file is opened. No accounts, no tracking
+- If you use a markdown library, pick one well-known and load it from a CDN only if needed — or implement a small safe subset yourself. Sanitize HTML in the preview. No raw script execution in notes.
+- Accessible textarea, labels, and focus management
+- Dark typographic UI
+
+Tell me how to open it and how backups work.
+"""),
+
+P("pomodoro-ambient", "Ambient pomodoro timer", "vibe-coding",
+  "A beautiful focus timer with work/break cycles, keyboard control, and optional gentle sound.",
+  "Paste into a vibe-coding tool. Single file, no signup, settings saved locally.",
+  ["Cursor", "Claude", "ChatGPT"],
+  ["timer", "focus", "vibe-coding"],
+  """
+Build an ambient pomodoro-style focus timer as a single HTML file.
+
+Defaults: 25 minutes work, 5 minutes short break, 15 minutes long break after 4 work sessions. All durations editable.
+
+Features:
+- Large, readable remaining time
+- Start, pause, reset, and skip
+- Session counter for the day, stored in localStorage (plus settings)
+- Optional gentle chime at the end of a session (off by default, with a mute toggle). No looping music unless I opt in
+- Keyboard: space start/pause, r reset, s skip, m mute
+- A short 'intention' text field for this session (local only)
+
+Design:
+- Quiet, typographic, slightly atmospheric background (CSS only). Not a copy of a famous timer app.
+- Honor prefers-reduced-motion. High contrast text. Big click/tap targets.
+
+Constraints:
+- No accounts, no notifications permission except the optional chime
+- Ask before playing sound (must be user-initiated)
+- Works at mobile width
+
+Deliver the file and a one-line test plan.
+"""),
+
+P("link-in-bio", "Tasteful link-in-bio page", "vibe-coding",
+  "A fast, tasteful links page you can host as a single file, without looking like a default template.",
+  "Fill in the handle, a short bio, and the links. Do not include a personal phone or private email if you want to stay private — use an X handle or a contact form placeholder.",
+  ["Cursor", "Claude", "ChatGPT"],
+  ["links", "personal-site", "vibe-coding"],
+  """
+Build a single-file 'link in bio' page for [HANDLE].
+
+Bio (1–2 sentences): [BIO]
+Links (label + URL, 4–8 of them): [LIST]
+Accent: [COLOR or 'choose something uncommon']
+Avatar: use a simple original SVG monogram from the handle, plus an easy place to drop in an image later
+
+Requirements:
+- Distinctive layout (not a perfect clone of popular link-in-bio products)
+- Fast, mobile-first, big tap targets, visible hover/focus
+- Optional: a light/dark toggle saved to localStorage
+- Footer: year + handle only. No phone number, no street address, no invented email
+- Accessible names on links. If you use icons, they are decorative and the label is real text
+- No tracking pixels, no signup modal
+
+Deliver the HTML file and list the two or three values I should personalize first.
+"""),
+]
+
+# ── Game Dev (8) ────────────────────────────────────────────────
+PROMPTS += [
+P("tight-platformer-jump", "Tight platformer jump feel", "game-dev",
+  "A design-and-tuning prompt that gets you to a snappy jump (coyote time, jump cut, variable height) with a test plan.",
+  "Paste into a coding or design chat with your engine (Godot, Unity, or web). Ask for starting numbers and the code shape your engine uses.",
+  ["Cursor", "Claude", "Claude Code", "Godot"],
+  ["platformer", "feel", "game-dev"],
+  """
+Help me tune a tight 2D platformer jump in [ENGINE].
+
+Current feel (or 'from scratch'): [DESCRIBE]
+Player is [SIZE in pixels or units] on a [TILE SIZE] grid. Target: a jump that can clear [N] tiles high and [M] tiles across, with air control that still lets me land on a single tile.
+
+Please provide:
+1. A short feel goal (snappy, not floaty; readable arcs)
+2. Starting values: gravity, jump velocity, max fall speed, air acceleration / deceleration, coyote time, jump buffer, jump cut (early release), and optional wall-slide if I asked
+3. Implementation notes in [ENGINE] terms (what to put in physics vs input)
+4. A 10-minute playtest script: rooms or cases to try (short hop onto a 1-tile ledge, jump over a gap, bump a ceiling, walk off a ledge and still jump, mash vs tap)
+5. What to change if it feels floaty, slippery, or sticky
+
+Rules:
+- Give numbers as a starting point, labeled as such.
+- Prefer a few coupled values over a huge parameter dump.
+- Do not add dash, double jump, or wall jump unless I ask.
+- Keep accessibility in mind: input buffer and coyote time stay on by default.
+""", featured=True),
+
+P("dungeon-room-gen", "Procedural dungeon room generator", "game-dev",
+  "Designs a readable procedural room generator (not an infinite spaghetti maze) with constraints and a debug view.",
+  "Use with a coding agent in your engine. Start on paper or in a small prototype scene.",
+  ["Cursor", "Claude Code", "Claude", "Godot"],
+  ["procgen", "dungeon", "game-dev"],
+  """
+Design and help me implement a procedural generator for 2D dungeon rooms in [ENGINE].
+
+Goal: generate a playable room that is readable, not a random mess of corridors.
+
+Constraints:
+- Grid: [WIDTH] x [HEIGHT] tiles
+- Always include: a connected floor, an entrance, an exit, and [N] interest points (enemy, loot, or prop sockets)
+- Rooms must be completable: no isolated floor pockets, no exit locked behind a one-tile diagonal if the player cannot step diagonally
+- Style: [e.g. chunky rooms with 1–2 side alcoves, not drunk-walk caves]
+
+Deliver:
+1. The algorithm in plain language (steps, data structures)
+2. Tile types and rules (wall, floor, door, socket)
+3. How to seed and reroll, plus a debug overlay (show seed, flood-fill connectivity)
+4. Starter code in [LANGUAGE / ENGINE]
+5. A list of test seeds or unit checks (connected, entrance != exit, min floor tiles)
+
+Do not generate a full roguelike, loot economy, or enemy AI. Just rooms I can drop a player into.
+"""),
+
+P("enemy-ai-fsm", "Enemy AI state machine", "game-dev",
+  "A clear finite-state machine for a single enemy type, with tell windows and tunable numbers.",
+  "Describe the enemy fantasy and your engine, then paste this prompt into a coding assistant.",
+  ["Cursor", "Claude Code", "Claude", "Godot"],
+  ["ai", "enemies", "game-dev"],
+  """
+Design a finite-state machine for one enemy type in [ENGINE].
+
+Fantasy: [e.g. a cautious archer, a charging brute, a skittish scout]
+Player tools: [what the player can do]
+Arena: [range, obstacles, 2D/3D]
+
+I want:
+- States (idle, telegraph, attack, recover, optional flee or reposition) with enter / update / exit notes
+- Clear tells so a fair player can react (animation or pause before the hit)
+- Transitions with conditions, not a pile of ifs in _process
+- Starting numbers: detection range, attack range, wind-up, recovery, cooldown, move speed
+- What happens at edges: player out of range, enemy cornered, player behind a wall, stun / hit during wind-up
+- How to debug (on-screen state name)
+
+Implementation:
+- Sketch the code in the project's language
+- Keep it to this one enemy. No director AI, no behavior trees unless I ask and the repo already uses them.
+
+Fairness: no instant hits from off-screen, no tracking bullets during the whole wind-up unless that is the fantasy and it is telegraphed.
+"""),
+
+P("npc-dialogue-tree", "NPC dialogue tree", "game-dev",
+  "Writes a small branching dialogue with goals, failure states, and a data shape you can implement.",
+  "Tell the assistant who the NPC is and what the player might want. Ask for a data file plus example lines.",
+  ["Claude", "ChatGPT", "Cursor", "Claude Code"],
+  ["dialogue", "narrative", "game-dev"],
+  """
+Write a branching dialogue for one NPC.
+
+NPC: [NAME and role]
+Player goal in this scene: [GOAL]
+Tone: [TONE]
+Length: about [8–15] player choices total, with at least one early exit and one success path
+Constraints: [rating, topics to avoid, whether lying is allowed]
+
+Deliver:
+1. A short character brief (want, fear, what they will and will not say)
+2. The tree as a structured list or JSON: node id, speaker, line, choices, next ids, optional flags set/required
+3. Flags you need (e.g. already_helped, knows_secret) and how they change later lines
+4. A success, a compromise, and a refusal outcome, each with a one-line gameplay consequence
+5. 3 lines that can be reused as barks later
+
+Rules:
+- Every choice should change something (info, tone, or flags). No three-flavors-of-yes.
+- Keep lines speakable out loud. No monologues over 40 words unless I asked for a speech.
+- Do not use copyrighted characters or celebrity likenesses.
+- Mark [NEED] if a world fact is missing instead of inventing lore I did not approve.
+"""),
+
+P("juice-pass", "Game juice pass", "game-dev",
+  "A practical 'juice' pass: impact, audio, and camera feedback that you can implement in a day without hiding weak mechanics.",
+  "Use after a prototype already plays. List your current verbs (jump, hit, collect) and engine.",
+  ["Claude", "Cursor", "Claude Code", "Godot"],
+  ["juice", "feel", "game-dev"],
+  """
+Give me a one-day juice pass for my prototype in [ENGINE].
+
+Verbs I already have: [jump, shoot, dash, collect, hit, die, ...]
+Art state: [blocks / temp sprites / closer to final]
+I want feedback that makes existing verbs feel better, not new systems.
+
+Please propose:
+- A prioritized list of 8–12 juice items I can actually finish in a day, tagged small / medium
+- For each: what happens (squash, flash, hit-stop, particles, camera punch, sound), when it triggers, and a starting intensity
+- A consistent 'language' (e.g. all damage shares a color and stop length)
+- What not to juice (do not hide laggy movement or unfair hits with screen shake)
+- How to keep it accessible: a reduced-shake / reduced-flash option, and no seizure-prone strobe
+
+If you write implementation notes, use [ENGINE] APIs at a high level. Skip a full particle framework if a few sprites and a tween will do.
+"""),
+
+P("godot-2d-starter", "Godot 2D starter scene", "game-dev",
+  "A prompt to scaffold a clean Godot 2D starter: player, camera, pause, and one test room.",
+  "Paste into Cursor or Claude Code in an empty or new Godot 4 project. Say the genre (platformer, top-down, etc.).",
+  ["Cursor", "Claude Code", "Godot"],
+  ["godot", "starter", "game-dev"],
+  """
+Scaffold a clean Godot 4.x 2D starter for a [GENRE: platformer / top-down / shmup] prototype.
+
+Please create or specify:
+- A main scene with a player, a camera that follows with light smoothing, a tilemap or simple collision geometry for a test room, and world bounds
+- Input actions (move, jump or interact, pause) — no hard-coded keys in code
+- A pause menu (resume, restart, quit) that stops the game tree correctly and is keyboard and click usable
+- A HUD hook (health or score placeholder) that does not clutter the game scene
+- Folders: scenes, scripts, assets — following common Godot practice
+- Typed GDScript, signals for player hurt / paused / died if relevant
+
+Constraints:
+- No asset pack downloads. Use simple ColoredRect / polygons or placeholder sprites I can replace.
+- Do not add a save system, inventory, or dialog plugin.
+- List exactly which files to add and how to press Play to verify: move, collide, pause, unpause.
+
+If the project already has a structure, adapt to it instead of replacing it.
+"""),
+
+P("tileset-art-direction", "Pixel tileset art direction", "game-dev",
+  "An art-direction brief for an original pixel tileset: palette, edges, props, and a do/don't list.",
+  "Use before you draw or commission a tileset. Describe the world and target resolution.",
+  ["Claude", "ChatGPT", "Gemini"],
+  ["pixel-art", "tileset", "art"],
+  """
+Write an art-direction brief for an original 2D pixel tileset.
+
+World: [BIOME / SETTING]
+Mood: [MOOD]
+Tile size: [16 / 32 / other]
+Perspective: [side-on / top-down / 3/4]
+Engine: [Godot / other]
+Reference feeling (not to copy): [e.g. 'damp stone cellar, warm lanterns']
+
+Deliver:
+- A 12–16 color palette (hex) with roles (shadow, mid, highlight, accent, danger, UI)
+- Tile categories to paint first (floors, walls, corners, edges, props, a hero tile)
+- Edge and corner rules so autotiles do not break
+- Lighting and outline rules (or no outline)
+- 8 prop ideas that sell the place without clutter
+- Do / don't list (no ripped tiles from existing games, no famous franchise motifs, no unreadable noise at play scale)
+- A one-page 'first sheet' checklist: the minimum set that can build a readable test room
+
+Keep it practical for a solo or small team. This is direction, not a promise of finished art.
+"""),
+
+P("two-week-jam-gdd", "Two-week game jam GDD", "game-dev",
+  "A tight game-design document for a two-week jam: scope, verbs, vertical slice, and a cut list.",
+  "Fill in the theme, engine, and team size, then paste into a writing or design chat.",
+  ["Claude", "ChatGPT", "Gemini"],
+  ["gdd", "game-jam", "scope"],
+  """
+Write a two-week game jam design document.
+
+Theme or constraint: [THEME]
+Engine: [ENGINE]
+Team: [SOLO / N people and skills]
+Platform: [web / desktop]
+Rating / content line: [e.g. all-ages, no gore]
+
+The document should include:
+1. Pitch in 3 sentences (player, verb, hook)
+2. Core verbs (max 3) and the feel goal
+3. A vertical slice for day 3 (what is playable)
+4. Content list: rooms or levels, enemies, items — with must / should / cut
+5. Week 1 and week 2 calendars (including a hard content freeze)
+6. Risks (scope, feel, tech) and a pre-agreed cut list
+7. Audio and art minimums (placeholders allowed)
+8. A 'done' definition for jam submit (bootable, completable, credits, no known blocker bug)
+
+Rules:
+- Scope for the team size. A solo jam is not a 12-system sim.
+- No licensed IPs or celebrity likenesses.
+- Prefer a finished small game over a half-built epic.
+"""),
+]
+
+# ── Review & Debug (8) ──────────────────────────────────────────
+PROMPTS += [
+P("pr-review-checklist", "PR review checklist", "code-review",
+  "A review prompt that scores a diff on correctness, risk, and clarity, with must-fix vs nit separated.",
+  "Paste this, then the PR description and the diff. Ask the model not to rewrite the whole change.",
+  ["ChatGPT", "Claude", "Cursor", "Claude Code"],
+  ["review", "pull-request", "checklist"],
+  """
+Review this change like a careful teammate.
+
+PR title / intent: [INTENT]
+Diff or files: [PASTE]
+Context I care about: [e.g. auth, money, data deletion, public API]
+
+Write:
+1. A 3–5 sentence summary of what the change actually does (not what the title claims)
+2. Must-fix issues (correctness, data loss, security, broken tests, backward compatibility)
+3. Should-fix issues (clear failure modes, missing tests, poor names that will spread)
+4. Nits (style, typos) — keep this short
+5. Test gaps: what I would add, or a manual test plan
+6. A final recommendation: approve / request changes / needs more context
+
+Rules:
+- Be specific (file and function, or a quoted line). Suggest a fix, not just 'please clean this up'.
+- If the change looks good, say so. Do not invent problems.
+- Do not request a rewrite when a local patch will do.
+- Do not provide exploit payloads. If you see a security issue, describe the risk and a defensive fix.
+- Call out anything you could not review because context is missing.
+""", featured=True),
+
+P("performance-hunt", "Frontend performance hunt", "code-review",
+  "Finds likely frontend performance issues and ranks fixes by impact and effort, with a measurement plan.",
+  "Paste the stack, a URL or key components, and any traces you have (or say you have none).",
+  ["Claude", "ChatGPT", "Cursor", "Claude Code"],
+  ["performance", "frontend", "review"],
+  """
+Help me hunt frontend performance issues in [APP / STACK].
+
+Symptoms: [e.g. slow first load, jank on scroll, sluggish typings]
+Where to look: [routes, components, or repo paths]
+Measurements I already have: [Lighthouse, traces, or 'none']
+
+Please:
+1. List the most likely causes in this stack (bundle size, images, unnecessary client JS, chatty network, layout thrash, expensive renders)
+2. Rank a punch list: impact vs effort, with the first measurement I should take for each
+3. Call out any anti-patterns you can already see in the code or description
+4. Propose a short measurement plan (what to record before and after)
+5. Suggest 3 changes I could land this week, not a rewrite
+
+Rules:
+- Do not invent timing numbers. If I gave none, say what to measure.
+- Prefer standard tools the stack already has.
+- No 'just switch frameworks' advice unless I asked for a migration.
+- Keep accessibility and correctness intact (do not tell me to remove labels or error states to save bytes).
+"""),
+
+P("defensive-security-review", "Defensive security review", "code-review",
+  "A defensive review of a feature or diff: trust boundaries, auth, data handling, and fix-forward guidance.",
+  "Paste the feature description and code. This is for hardening your own project, not attacking a system.",
+  ["Claude", "ChatGPT", "Cursor", "Claude Code"],
+  ["security", "review", "defensive"],
+  """
+Do a defensive security review of this feature or diff in a project I maintain.
+
+Feature / intent: [INTENT]
+Code or description: [PASTE]
+Trust boundaries: [who is authenticated, what is public, what is admin]
+
+Review for, at a high level:
+- Authentication and authorization gaps (missing checks, confused roles)
+- Input validation and output encoding (injection risks described, not demonstrated)
+- Secrets in code, logs, or client bundles
+- Sensitive data stored or transmitted too loosely
+- CSRF, CORS, and cookie flags if this is a web app
+- File upload / path / URL handling if present
+- Dangerous defaults (open debug, verbose errors in production)
+
+For each finding:
+- Severity (blocker / high / medium / low)
+- The condition that makes it a problem
+- A defensive fix or hardening step I can apply in this codebase
+- How I would verify the fix with a normal, authorized test (no exploit payloads or attack scripts)
+
+Rules:
+- Describe risks in plain language. Do not write exploits, proof-of-concept attacks, or step-by-step abuse procedures.
+- If something looks fine, say so.
+- If you lack context (threat model, framework defaults), state assumptions.
+"""),
+
+P("flaky-test-detective", "Flaky test detective", "code-review",
+  "Helps find why a test is flaky: time, order, network, randomness, or shared state — and how to make it deterministic.",
+  "Paste the test, the failure log, and how often it fails. Ask for a root cause before a rewrite.",
+  ["Cursor", "Claude Code", "Claude", "ChatGPT"],
+  ["testing", "flakes", "debugging"],
+  """
+Help me fix a flaky test.
+
+Test: [FILE and name]
+How it fails: [INTERMITTENT / CI only / local only], about [N] times out of [M]
+Failure log: [PASTE]
+What the test is supposed to prove: [BEHAVIOR]
+
+Work like this:
+1. List likely flake classes (timing, order dependence, shared fixtures, real network, clock, randomness, animation, leaked state) and which clues in the log support each
+2. Name the most likely cause and the smallest change that would make the test deterministic
+3. Show a patched test (or helper) that still asserts the behavior, not a sleep(5000)
+4. Suggest one way to confirm it is fixed (repeat locally, or a note for CI)
+
+Rules:
+- Do not recommend deleting the test or marking it skipped as the real fix.
+- Do not suggest always-retry as the only solution.
+- Keep the assertion meaningful. If the test is testing the wrong thing, say so and propose a better one.
+"""),
+
+P("type-safety-pass", "Type-safety pass", "code-review",
+  "A pass over a TypeScript or typed Python change to remove unsafe escapes and tighten public types.",
+  "Paste the files or ask a coding agent to review a path. Name the language and how strict the project is.",
+  ["Cursor", "Claude Code", "Claude"],
+  ["types", "typescript", "review"],
+  """
+Do a type-safety pass on this code in [TypeScript / Python].
+
+Files or snippet: [PASTE]
+Project strictness: [e.g. tsconfig strict, mypy / pyright]
+
+Find and fix (or recommend fixes for):
+- `any`, unexplained `unknown` casts, `as` / type assertions used to silence errors
+- Missing types on exported functions
+- Optional fields that should be required (or the reverse)
+- Union types that are too wide, or unhandled cases
+- Null / undefined holes at boundaries (API responses, form input)
+- Types that lie (a name that says X but allows Y)
+
+Output:
+- A table of issues: location, risk, suggested type
+- A tightened snippet for the riskiest spots
+- What I should run (`tsc`, `mypy`, etc.) to confirm
+
+Do not disable the typechecker or add blanket ignores to 'make it pass'. If a library has poor types, isolate the boundary in one place.
+"""),
+
+P("component-a11y-audit", "Component accessibility audit", "code-review",
+  "Audits a UI component for keyboard, names, states, and contrast, with a fix list you can implement.",
+  "Paste the component code or a URL and the interaction (menu, modal, tabs, form). Ask for expected keyboard behavior.",
+  ["Claude", "ChatGPT", "Cursor", "Claude Code"],
+  ["accessibility", "ui", "audit"],
+  """
+Audit this UI component for accessibility.
+
+Component: [NAME and role, e.g. modal, menu, tabs, combobox, form]
+Code or description: [PASTE]
+Known users / constraints: [e.g. must work with keyboard only]
+
+Cover:
+- Semantics and roles
+- Accessible name and description
+- Keyboard interaction (tab, arrows, escape, enter, space) and focus management
+- State (expanded, selected, disabled, error) announced correctly
+- Contrast and text (if I provided styles or a screenshot)
+- Motion, timing, and reduced-motion
+- Mobile / touch if relevant
+
+Output a punch list: blocker / should fix / nit, each with a recommended change in markup or code. Then sketch the corrected interaction in a short example.
+
+If you are unsure, say so and describe a manual check I can do (keyboard only, screen reader, zoom). Do not claim a formal WCAG certification.
+"""),
+
+P("explain-stack-trace", "Explain this stack trace", "code-review",
+  "Turns a noisy stack trace or error log into a likely cause, a next check, and a cautious fix.",
+  "Paste the full trace, the command you ran, and any recent change. Ask it not to guess a patch without a theory.",
+  ["ChatGPT", "Claude", "Cursor", "Claude Code"],
+  ["debugging", "errors", "stack-trace"],
+  """
+Explain this error and help me fix it.
+
+Command or action: [WHAT I RAN]
+Recent change: [WHAT I TOUCHED]
+Full error / stack trace:
+[PASTE]
+
+Please:
+1. Say what actually failed, in one sentence, in my language (not just the exception class)
+2. Walk the relevant frames: which one is 'my code' vs library code, and which frame is the real clue
+3. Give 1–3 likely causes, ranked, and the next check that would confirm or reject each (a log, a value to print, a file to open)
+4. Only after that, suggest a fix. If the trace is incomplete, ask for the missing piece instead of inventing a patch
+5. Mention residual risk (e.g. this error might be hiding another one)
+
+Rules:
+- Do not ignore the trace in favor of a generic tutorial.
+- Do not recommend deleting lockfiles or using `--force` as the first move.
+- If it looks environmental (version, path, permissions), say how to verify that.
+"""),
+
+P("sql-query-review", "SQL query review", "code-review",
+  "Reviews a SQL query for correctness, indexes, and accidental full scans — without rewriting it unless needed.",
+  "Paste the query, the dialect, and approximate table sizes or indexes if you know them.",
+  ["Claude", "ChatGPT", "Cursor", "Claude Code"],
+  ["sql", "review", "performance"],
+  """
+Review this SQL query.
+
+Dialect: [Postgres / MySQL / SQLite / other]
+Query:
+[PASTE]
+Schema / indexes I know: [OR 'unknown']
+What it is supposed to return: [INTENT]
+Approximate size: [e.g. 10k orders, 2m events, unknown]
+
+Please check:
+- Correctness vs the stated intent (joins, grain, duplicates, NULL behavior, time zones)
+- Filters that cannot use an index, or functions wrapped around columns
+- Dangerous patterns (unbounded SELECT *, accidental cross joins, missing LIMIT on ad-hoc explores, updates without WHERE)
+- A simpler or safer rewrite if the current query is hard to trust
+- How I should EXPLAIN or test it in my dialect, and what I should look for
+
+Rules:
+- If you lack schema details, mark assumptions.
+- Do not invent indexes that already might exist; recommend 'add index on X if it does not exist' and why.
+- No vendor lock-in lectures. Stay on this query.
+- Never recommend running a destructive query I did not already present. If this is a DELETE or UPDATE, require a SELECT preview and a transaction note.
+"""),
+]
+
+# ── Research & Writing (8) ──────────────────────────────────────
+PROMPTS += [
+P("literature-map", "Literature map", "research-writing",
+  "Maps a topic into schools of thought, key sources, and open questions instead of a fake complete survey.",
+  "Give the topic, the depth you need, and any sources you already trust. Ask for links and dates.",
+  ["Claude", "ChatGPT", "Gemini"],
+  ["research", "survey", "writing"],
+  """
+Make a literature map for: [TOPIC].
+
+Purpose: [e.g. I am writing a post / choosing a library / researching a feature]
+Depth: [quick map / serious weekend read]
+Sources I already have: [LIST or 'none']
+Time focus: [e.g. last 5 years, or include classics]
+
+Produce:
+- A one-paragraph orientation
+- 4–8 clusters (schools, approaches, or camps) with what they claim and how they differ
+- Key sources per cluster (title, author or org, year, and why it matters). Prefer primary sources
+- Terms I must not mix up
+- Open questions and disagreements
+- A suggested reading order of 5 items
+
+Rules:
+- If you are not sure a source exists, do not invent it. Say 'verify' or leave it out.
+- Distinguish surveys from original work, and marketing from research.
+- Note recency risk on fast-moving topics (models, APIs, pricing).
+"""),
+
+P("ship-tomorrow-explain", "Explain like I'm shipping tomorrow", "research-writing",
+  "Explains a technology just enough to make a shipping decision: what to use, what to ignore, and what can wait.",
+  "Name the technology and the decision you have to make. Ask for a default path, not a history lesson.",
+  ["ChatGPT", "Claude", "Gemini"],
+  ["explanation", "decisions", "writing"],
+  """
+Explain [TECHNOLOGY] like I am shipping something with it tomorrow.
+
+My project: [ONE PARAGRAPH]
+My decision: [e.g. adopt, delay, or pick between A and B]
+My current skill: [LEVEL]
+
+Write:
+1. What it is, in five sentences, with no origin story
+2. The default path you recommend for my case, and why
+3. A minimal mental model (3–6 pieces) I need so I do not misuse it
+4. 'Do this / don't do this' for the first week
+5. What can wait until after launch
+6. The most common footgun and how I will notice it
+7. Official docs I should keep open (real titles / URLs if you know them)
+
+No history, no vendor hype, no 'it depends' without a pick. If you must assume, label the assumption.
+"""),
+
+P("plain-changelog", "Changelog in plain English", "research-writing",
+  "Turns commit lists or release notes into a user-facing changelog grouped by impact.",
+  "Paste commits, PR titles, or rough notes. Say who the audience is (users, developers, or both).",
+  ["ChatGPT", "Claude", "Gemini"],
+  ["changelog", "writing", "releases"],
+  """
+Rewrite these notes as a plain-English changelog.
+
+Audience: [end users / developers / both]
+Version and date: [OR 'unreleased']
+Raw notes / commits:
+[PASTE]
+
+Output:
+- A one-line 'this release in short'
+- Sections: New, Improved, Fixed, Changed (breaking), Internal (only if the audience needs it)
+- Each item starts with a verb and names the user-visible change. Mention the old behavior when it helps
+- Call out anything people must do (migrate, update an env var, clear a cache)
+
+Rules:
+- Do not invent features that are not in the notes.
+- Group duplicates. Drop noisy 'fix typo' commits unless the typo was user-facing.
+- No 'enhanced the user experience' filler.
+- If a note is unclear, add a [NEED: clarify X] bullet instead of guessing.
+"""),
+
+P("comparison-table", "Comparison table researcher", "research-writing",
+  "Builds a fair comparison table with sourced cells and an explicit 'unknown' instead of marketing guesses.",
+  "Name the options, the criteria you care about, and the date. Ask for sources under the table.",
+  ["Claude", "ChatGPT", "Gemini"],
+  ["comparison", "research", "table"],
+  """
+Build a comparison of: [OPTIONS].
+
+I care about: [CRITERIA, e.g. price, license, self-host, learning curve, limits]
+Use case: [WHAT I AM TRYING TO DO]
+As of: [DATE]
+
+Deliver:
+- A table with a row per criterion and a column per option
+- Cells that are specific (numbers, plan names, license names). Use 'unknown — verify' rather than a guess
+- A short 'who each option is for' blurb
+- A source list, one per major cell group (official pricing page, docs, license file)
+- A recommendation for my use case, with the main risk if I follow it
+
+Rules:
+- Prefer official sources. Do not copy unique marketing slogans as facts.
+- Pricing changes; date-stamp it and warn me to re-check.
+- Do not hide a deal-breaker's absence. If something cannot self-host, say no, not 'varies'.
+"""),
+
+P("x-thread-from-post", "X thread from a long post", "research-writing",
+  "Turns a long article or changelog into a tight X thread that stands alone and does not bait clicks.",
+  "Paste the source text and any URL. Set a max number of posts and whether a link goes in the first or last post.",
+  ["ChatGPT", "Claude", "Gemini"],
+  ["social", "thread", "writing"],
+  """
+Turn this source into an X thread.
+
+Source:
+[PASTE or outline]
+Link (optional): [URL]
+Max posts: [e.g. 6–8]
+Link placement: [first / last / none]
+Voice: specific, human, no hype
+
+Write:
+- A first post that states the point on its own
+- Follow-ups that each add one idea, example, or step
+- A last post with the takeaway and the link if we saved it for the end
+- 2 alternative first-post options
+
+Rules:
+- Do not invent facts, quotes, or numbers that are not in the source.
+- No 'thread 🧵👇' cliches, no engagement bait, no hashtag walls.
+- Keep each post comfortably under a typical character limit. Number them lightly (1/, 2/) only if it stays readable.
+- The thread should make sense even if someone never clicks the link.
+"""),
+
+P("readme-rewrite", "README rewrite", "research-writing",
+  "Rewrites a README so a stranger can run the project and understand the layout without archaeology.",
+  "Paste the current README and the real setup commands from the repo. Ask the model not to invent scripts.",
+  ["Claude", "ChatGPT", "Cursor", "Claude Code"],
+  ["readme", "docs", "writing"],
+  """
+Rewrite this README so a new contributor can succeed on the first try.
+
+Current README:
+[PASTE]
+Real commands and facts from the repo:
+[PASTE from package.json, Makefile, etc.]
+
+The new README should include, in this order if they apply:
+- What this is (three sentences, max)
+- Who it is for
+- Requirements
+- Setup (copy-pasteable)
+- Run / test / lint / build
+- Project layout (short)
+- Configuration / env vars (only real ones)
+- How to contribute a small change
+- License (if present)
+
+Rules:
+- Do not invent commands, badges, screenshots, or features.
+- Prefer one way to do a thing. If there are two, say which is canonical.
+- Cut badges and quotes that do not help someone run the project.
+- Keep the project's existing voice if it has one, just clearer.
+"""),
+
+P("adr-writer", "Architecture decision record", "research-writing",
+  "Writes a short ADR: context, options, the decision, and consequences — without a 20-page design doc.",
+  "Describe the decision and the options you considered. Ask for a template the repo can keep in /docs/adr.",
+  ["Claude", "ChatGPT", "Cursor"],
+  ["adr", "architecture", "writing"],
+  """
+Write an architecture decision record.
+
+Decision title: [TITLE]
+Context: [WHAT FORCES THIS DECISION]
+Options we considered: [A, B, C]
+Leaning toward (optional): [X]
+Constraints: [team size, time, compliance, existing stack]
+
+Use this shape:
+- Title and status (Proposed)
+- Date: [TODAY]
+- Context
+- Options, each with a fair description, plus pros / cons
+- Decision
+- Why not the alternatives
+- Consequences (positive, negative, follow-up work)
+- Revisit triggers (what would make us change this)
+
+Rules:
+- Do not invent constraints or options I did not mention, except to ask 'did you consider Y?' in a short questions list.
+- Keep it to 1–2 pages. No jargon without a definition.
+- A decision can be 'we will wait' if that is the honest call — say until when and why.
+"""),
+
+P("interview-synthesizer", "User-interview synthesizer", "research-writing",
+  "Synthesizes interview notes into jobs, quotes, and tensions, without pretending a small sample is a census.",
+  "Paste anonymized notes. Remove emails and phone numbers first. Say how many people you talked to.",
+  ["Claude", "ChatGPT", "Gemini"],
+  ["interviews", "research", "synthesis"],
+  """
+Synthesize these user interview notes.
+
+Research question: [QUESTION]
+Number of interviews: [N]
+Notes (anonymized):
+[PASTE]
+
+Produce:
+- A 1-paragraph answer to the research question, hedged to the sample size
+- Recurring jobs-to-be-done and pains, each with 1–3 short quotes (verbatim, lightly trimmed)
+- Tensions and contradictions
+- Surprises (things we did not expect)
+- Opportunities: 3 ideas tied to evidence, not a backlog of 20
+- Gaps: who we did not hear from, questions still open
+
+Rules:
+- Do not invent quotes or participants.
+- Do not inflate '2 people said' into 'users want'.
+- Mask any remaining personal identifiers (email, phone, employer if sensitive).
+- If the notes are thin, say you cannot synthesize yet and list what is missing.
+"""),
+]
+
+
+def main():
+    ids = [p["id"] for p in PROMPTS]
+    assert len(ids) == len(set(ids)), f"duplicate ids: {[i for i in ids if ids.count(i) > 1]}"
+    missing = [p["id"] for p in PROMPTS if p["category"] not in CATEGORIES]
+    assert not missing, missing
+    counts = {k: sum(1 for p in PROMPTS if p["category"] == k) for k in CATEGORIES}
+    data = {
+        "generatedAt": "2026-11-10",
+        "disclaimer": "Prompts are original Cloudy writing, free to use and adapt. They are starting points, not guarantees. Review any model output before you ship it.",
+        "categories": CATEGORIES,
+        "categoryBlurbs": BLURBS,
+        "prompts": PROMPTS,
+    }
+    path = Path(__file__).resolve().parent / "prompts.json"
+    path.write_text(json.dumps(data, ensure_ascii=False, indent=2) + "\n")
+    featured = sum(1 for p in PROMPTS if p.get("featured"))
+    print(f"wrote {path} prompts={len(PROMPTS)} cats={counts} featured={featured}")
+
+
+if __name__ == "__main__":
+    main()
