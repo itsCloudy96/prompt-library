@@ -1,0 +1,89 @@
+# Cloudy Prompt Library
+
+> Free library of original, copy-ready AI agent prompts and configs. 64 prompts across 8 categories. Run by Cloudy.
+
+Data is available as JSON at https://itscloudy96.github.io/prompt-library/data/prompts.json (fields: id, title, category, summary, howToUse, worksWith, tags, body).
+
+## Main pages
+- [Home](https://itscloudy96.github.io/prompt-library/): search and featured prompts
+- [Library](https://itscloudy96.github.io/prompt-library/prompts/): searchable directory
+- [Full prompt list for LLMs](https://itscloudy96.github.io/prompt-library/llms-full.txt)
+- [About & disclosure](https://itscloudy96.github.io/prompt-library/about/)
+- [Cloudy AI Tool Finder](https://itscloudy96.github.io/ai-tool-finder/)
+- [Cloudy Game Dev Kits](https://itscloudy96.github.io/game-dev-kits/)
+
+## Categories
+- [System Prompts](https://itscloudy96.github.io/prompt-library/category/system-prompts/): Reusable system prompts that set the tone, constraints and output style for a chat or agent.
+- [Cursor Rules](https://itscloudy96.github.io/prompt-library/category/cursor-rules/): Project rules you can drop into Cursor (or similar editors) so the agent stays in bounds.
+- [Custom Instructions](https://itscloudy96.github.io/prompt-library/category/custom-instructions/): Custom instructions for ChatGPT, Claude and other assistants — who you are, how they should answer.
+- [Agent Task Templates](https://itscloudy96.github.io/prompt-library/category/agent-templates/): Multi-step task briefs for coding agents and research agents, with a clear definition of done.
+- [Vibe Coding](https://itscloudy96.github.io/prompt-library/category/vibe-coding/): Build-an-app prompts that turn a vibe into a working single-page project, with taste and constraints.
+- [Game Dev](https://itscloudy96.github.io/prompt-library/category/game-dev/): Prompts for game feel, systems, art direction and short jam documentation.
+- [Review & Debug](https://itscloudy96.github.io/prompt-library/category/code-review/): Review, debug and audit prompts that produce specific findings instead of vague advice.
+- [Research & Writing](https://itscloudy96.github.io/prompt-library/category/research-writing/): Prompts for research, explanations, changelogs, threads, READMEs and decision records.
+
+## Prompts
+- [The no-scope-creep coding assistant](https://itscloudy96.github.io/prompt-library/prompt/no-scope-creep-coder/): A coding system prompt that solves the asked problem, shows its work, and refuses to wander into extra refactors.
+- [Skeptical research analyst](https://itscloudy96.github.io/prompt-library/prompt/skeptical-researcher/): A research system prompt that separates facts, claims and speculation, and always shows sources.
+- [Product-minded tech writer](https://itscloudy96.github.io/prompt-library/prompt/product-tech-writer/): Turns messy notes into clear product writing for builders: tight, specific, and free of fluff.
+- [Socratic tutor that won't spoil the answer](https://itscloudy96.github.io/prompt-library/prompt/socratic-tutor/): A tutoring prompt that asks guiding questions and only reveals the answer after a real attempt.
+- [Ruthless but kind copy editor](https://itscloudy96.github.io/prompt-library/prompt/ruthless-editor/): Edits writing for clarity and rhythm, keeps the author's voice, and shows a diff of what changed and why.
+- [Calm incident responder](https://itscloudy96.github.io/prompt-library/prompt/incident-responder/): A system prompt for production incidents: stabilize, gather evidence, and communicate clearly.
+- [API design partner](https://itscloudy96.github.io/prompt-library/prompt/api-design-partner/): Helps design small, consistent APIs with resources, error shapes, and compatibility notes — not a pile of endpoints.
+- [Meeting notes synthesizer](https://itscloudy96.github.io/prompt-library/prompt/meeting-synthesizer/): Turns messy transcripts or notes into decisions, owners, and open questions — not a recap of who said what.
+- [TypeScript + React project rules](https://itscloudy96.github.io/prompt-library/prompt/ts-react-rules/): A Cursor rules file for a TypeScript React app: typed props, small components, and no surprise dependencies.
+- [Python backend rules](https://itscloudy96.github.io/prompt-library/prompt/python-backend-rules/): Rules for a Python API or service: typed functions, explicit errors, and tests next to the change.
+- [Next.js app rules](https://itscloudy96.github.io/prompt-library/prompt/nextjs-app-rules/): Cursor rules for a Next.js app: server vs client components, data fetching, and no accidental secret leaks.
+- [Test-first change rules](https://itscloudy96.github.io/prompt-library/prompt/test-first-rules/): Forces a failing test (or a clear test plan) before implementation, so the agent does not weaken tests by changing assertions.
+- [Small-diff, no surprise refactors](https://itscloudy96.github.io/prompt-library/prompt/small-diff-rules/): A short rules file that keeps an agent from rewriting half the repo when you asked for a one-line fix.
+- [Accessibility-first frontend rules](https://itscloudy96.github.io/prompt-library/prompt/a11y-frontend-rules/): Frontend rules that treat keyboard access, labels, and semantics as part of the definition of done.
+- [Keep the docs in the repo](https://itscloudy96.github.io/prompt-library/prompt/docs-in-repo-rules/): Rules that make the agent update README or in-repo docs when behavior, commands, or env vars change.
+- [Godot + GDScript project rules](https://itscloudy96.github.io/prompt-library/prompt/godot-gdscript-rules/): Rules for a Godot game project: scene structure, signals, and keeping gameplay code out of huge _process blobs.
+- [Concise builder instructions](https://itscloudy96.github.io/prompt-library/prompt/concise-builder/): Custom instructions for a builder who wants short answers, working code, and no filler prefaces.
+- [Learn-by-doing student](https://itscloudy96.github.io/prompt-library/prompt/learning-student/): Instructions that make the assistant teach while you build, without treating you like a beginner at everything.
+- [Founder wearing many hats](https://itscloudy96.github.io/prompt-library/prompt/many-hat-founder/): For a solo or small-team founder who needs practical help across product, copy, and light engineering.
+- [Senior engineer review stance](https://itscloudy96.github.io/prompt-library/prompt/senior-reviewer-stance/): Makes the assistant review like a careful teammate: risks first, then design, then nits.
+- [X and newsletter writing voice](https://itscloudy96.github.io/prompt-library/prompt/x-and-newsletter/): A voice profile for short posts and newsletter blurbs: specific, human, and not salesy.
+- [Game designer iterating on feel](https://itscloudy96.github.io/prompt-library/prompt/game-designer-iterating/): Instructions for iterating on mechanics and feel with playable, testable suggestions instead of lore essays.
+- [Data-curious analyst](https://itscloudy96.github.io/prompt-library/prompt/data-curious/): For messy spreadsheets and product questions: clear methods, cautious claims, and charts you can defend.
+- [Accessibility advocate](https://itscloudy96.github.io/prompt-library/prompt/a11y-advocate/): A standing instruction to treat accessibility as a default requirement in UI, copy, and design advice.
+- [Daily AI agent changelog researcher](https://itscloudy96.github.io/prompt-library/prompt/daily-changelog-agent/): A task brief for an agent that gathers the day's notable agent-tool and model changes into a tight changelog.
+- [Competitor feature teardown](https://itscloudy96.github.io/prompt-library/prompt/competitor-teardown/): A structured brief for tearing down a competing product page-by-page without turning it into a slam piece.
+- [Bug repro-and-fix agent](https://itscloudy96.github.io/prompt-library/prompt/bug-repro-fix/): A task template that forces a reproduction, a root-cause hypothesis, and a minimal fix with a test.
+- [Repo onboarding agent](https://itscloudy96.github.io/prompt-library/prompt/repo-onboarding/): Produces a practical onboarding brief for a new (or future) teammate from the repo itself.
+- [Newsletter issue drafter](https://itscloudy96.github.io/prompt-library/prompt/newsletter-drafter/): Turns researched changelog items into a short newsletter draft in a consistent house style.
+- [SEO page auditor](https://itscloudy96.github.io/prompt-library/prompt/seo-page-auditor/): Audits a page for title, intent, structure, internal links and chatbot-readable signals — without black-hat tricks.
+- [Dependency upgrade agent](https://itscloudy96.github.io/prompt-library/prompt/dep-upgrade-agent/): A careful brief for upgrading a dependency: changelog, breakage, and a rollback plan.
+- [Customer-feedback clusterer](https://itscloudy96.github.io/prompt-library/prompt/feedback-clusterer/): Clusters raw feedback into themes with quotes and suggested next actions, without inventing prevalence.
+- [One-page product landing](https://itscloudy96.github.io/prompt-library/prompt/one-page-landing/): A build prompt for a fast, distinctive one-page landing site with a clear offer and no stock-template look.
+- [Personal command-center dashboard](https://itscloudy96.github.io/prompt-library/prompt/personal-dashboard/): Builds a local, pretty personal dashboard: time, links, a note scratchpad, and no account system.
+- [Personality quiz web app](https://itscloudy96.github.io/prompt-library/prompt/quiz-web-app/): A self-contained quiz app with scored results, a shareable result card, and no backend.
+- [Pixel-art style portfolio](https://itscloudy96.github.io/prompt-library/prompt/pixel-portfolio/): A small portfolio site with a pixel-art aesthetic that still reads as professional and accessible.
+- [Local-first keyboard todo](https://itscloudy96.github.io/prompt-library/prompt/keyboard-todo/): A fast, local todo app designed for keyboard use, with projects, due-today, and no account.
+- [Browser markdown notes app](https://itscloudy96.github.io/prompt-library/prompt/markdown-notes/): A split-pane markdown notes app that lives in the browser, with local persistence and export.
+- [Ambient pomodoro timer](https://itscloudy96.github.io/prompt-library/prompt/pomodoro-ambient/): A beautiful focus timer with work/break cycles, keyboard control, and optional gentle sound.
+- [Tasteful link-in-bio page](https://itscloudy96.github.io/prompt-library/prompt/link-in-bio/): A fast, tasteful links page you can host as a single file, without looking like a default template.
+- [Tight platformer jump feel](https://itscloudy96.github.io/prompt-library/prompt/tight-platformer-jump/): A design-and-tuning prompt that gets you to a snappy jump (coyote time, jump cut, variable height) with a test plan.
+- [Procedural dungeon room generator](https://itscloudy96.github.io/prompt-library/prompt/dungeon-room-gen/): Designs a readable procedural room generator (not an infinite spaghetti maze) with constraints and a debug view.
+- [Enemy AI state machine](https://itscloudy96.github.io/prompt-library/prompt/enemy-ai-fsm/): A clear finite-state machine for a single enemy type, with tell windows and tunable numbers.
+- [NPC dialogue tree](https://itscloudy96.github.io/prompt-library/prompt/npc-dialogue-tree/): Writes a small branching dialogue with goals, failure states, and a data shape you can implement.
+- [Game juice pass](https://itscloudy96.github.io/prompt-library/prompt/juice-pass/): A practical 'juice' pass: impact, audio, and camera feedback that you can implement in a day without hiding weak mechanics.
+- [Godot 2D starter scene](https://itscloudy96.github.io/prompt-library/prompt/godot-2d-starter/): A prompt to scaffold a clean Godot 2D starter: player, camera, pause, and one test room.
+- [Pixel tileset art direction](https://itscloudy96.github.io/prompt-library/prompt/tileset-art-direction/): An art-direction brief for an original pixel tileset: palette, edges, props, and a do/don't list.
+- [Two-week game jam GDD](https://itscloudy96.github.io/prompt-library/prompt/two-week-jam-gdd/): A tight game-design document for a two-week jam: scope, verbs, vertical slice, and a cut list.
+- [PR review checklist](https://itscloudy96.github.io/prompt-library/prompt/pr-review-checklist/): A review prompt that scores a diff on correctness, risk, and clarity, with must-fix vs nit separated.
+- [Frontend performance hunt](https://itscloudy96.github.io/prompt-library/prompt/performance-hunt/): Finds likely frontend performance issues and ranks fixes by impact and effort, with a measurement plan.
+- [Defensive security review](https://itscloudy96.github.io/prompt-library/prompt/defensive-security-review/): A defensive review of a feature or diff: trust boundaries, auth, data handling, and fix-forward guidance.
+- [Flaky test detective](https://itscloudy96.github.io/prompt-library/prompt/flaky-test-detective/): Helps find why a test is flaky: time, order, network, randomness, or shared state — and how to make it deterministic.
+- [Type-safety pass](https://itscloudy96.github.io/prompt-library/prompt/type-safety-pass/): A pass over a TypeScript or typed Python change to remove unsafe escapes and tighten public types.
+- [Component accessibility audit](https://itscloudy96.github.io/prompt-library/prompt/component-a11y-audit/): Audits a UI component for keyboard, names, states, and contrast, with a fix list you can implement.
+- [Explain this stack trace](https://itscloudy96.github.io/prompt-library/prompt/explain-stack-trace/): Turns a noisy stack trace or error log into a likely cause, a next check, and a cautious fix.
+- [SQL query review](https://itscloudy96.github.io/prompt-library/prompt/sql-query-review/): Reviews a SQL query for correctness, indexes, and accidental full scans — without rewriting it unless needed.
+- [Literature map](https://itscloudy96.github.io/prompt-library/prompt/literature-map/): Maps a topic into schools of thought, key sources, and open questions instead of a fake complete survey.
+- [Explain like I'm shipping tomorrow](https://itscloudy96.github.io/prompt-library/prompt/ship-tomorrow-explain/): Explains a technology just enough to make a shipping decision: what to use, what to ignore, and what can wait.
+- [Changelog in plain English](https://itscloudy96.github.io/prompt-library/prompt/plain-changelog/): Turns commit lists or release notes into a user-facing changelog grouped by impact.
+- [Comparison table researcher](https://itscloudy96.github.io/prompt-library/prompt/comparison-table/): Builds a fair comparison table with sourced cells and an explicit 'unknown' instead of marketing guesses.
+- [X thread from a long post](https://itscloudy96.github.io/prompt-library/prompt/x-thread-from-post/): Turns a long article or changelog into a tight X thread that stands alone and does not bait clicks.
+- [README rewrite](https://itscloudy96.github.io/prompt-library/prompt/readme-rewrite/): Rewrites a README so a stranger can run the project and understand the layout without archaeology.
+- [Architecture decision record](https://itscloudy96.github.io/prompt-library/prompt/adr-writer/): Writes a short ADR: context, options, the decision, and consequences — without a 20-page design doc.
+- [User-interview synthesizer](https://itscloudy96.github.io/prompt-library/prompt/interview-synthesizer/): Synthesizes interview notes into jobs, quotes, and tensions, without pretending a small sample is a census.

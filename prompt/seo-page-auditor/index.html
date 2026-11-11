@@ -1,0 +1,78 @@
+<!doctype html>
+<html lang="en" data-root="../../">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>SEO page auditor (Copy-Ready Prompt) | Cloudy</title>
+<meta name="description" content="SEO page auditor: Audits a page for title, intent, structure, internal links and chatbot-readable signals — without black-hat tricks.">
+<link rel="canonical" href="https://itscloudy96.github.io/prompt-library/prompt/seo-page-auditor/">
+<meta name="robots" content="index,follow,max-image-preview:large">
+<meta name="theme-color" content="#0b1020">
+<meta property="og:type" content="article"><meta property="og:site_name" content="Cloudy Prompt Library">
+<meta property="og:title" content="SEO page auditor (Copy-Ready Prompt) | Cloudy"><meta property="og:description" content="SEO page auditor: Audits a page for title, intent, structure, internal links and chatbot-readable signals — without black-hat tricks.">
+<meta property="og:url" content="https://itscloudy96.github.io/prompt-library/prompt/seo-page-auditor/"><meta property="og:image" content="https://itscloudy96.github.io/prompt-library/og.png">
+<meta property="og:image:width" content="1200"><meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image"><meta name="twitter:site" content="@ItsCloudySpace">
+<meta name="twitter:title" content="SEO page auditor (Copy-Ready Prompt) | Cloudy"><meta name="twitter:description" content="SEO page auditor: Audits a page for title, intent, structure, internal links and chatbot-readable signals — without black-hat tricks."><meta name="twitter:image" content="https://itscloudy96.github.io/prompt-library/og.png">
+<link rel="icon" href="../../favicon.svg" type="image/svg+xml">
+<link rel="alternate" type="text/plain" title="LLM summary" href="../../llms.txt">
+<link rel="stylesheet" href="../../css/styles.css?v=2026-11-10">
+<script type="application/ld+json">{"@context": "https://schema.org", "@type": "TechArticle", "headline": "SEO page auditor", "name": "SEO page auditor", "url": "https://itscloudy96.github.io/prompt-library/prompt/seo-page-auditor/", "description": "Audits a page for title, intent, structure, internal links and chatbot-readable signals — without black-hat tricks.", "author": {"@type": "Organization", "name": "Cloudy"}, "publisher": {"@type": "Organization", "name": "Cloudy", "url": "https://itscloudy96.github.io/prompt-library/", "sameAs": ["https://x.com/ItsCloudySpace", "https://cloudys-newsletter.beehiiv.com", "https://itscloudy96.github.io/ai-tool-finder/", "https://itscloudy96.github.io/game-dev-kits/"]}, "dateModified": "2026-11-10", "keywords": "seo, content, audit", "articleSection": "Agent Task Templates"}</script><script type="application/ld+json">{"@context": "https://schema.org", "@type": "BreadcrumbList", "itemListElement": [{"@type": "ListItem", "position": 1, "name": "Home", "item": "https://itscloudy96.github.io/prompt-library/"}, {"@type": "ListItem", "position": 2, "name": "Agent Task Templates", "item": "https://itscloudy96.github.io/prompt-library/category/agent-templates/"}, {"@type": "ListItem", "position": 3, "name": "SEO page auditor", "item": "https://itscloudy96.github.io/prompt-library/prompt/seo-page-auditor/"}]}</script>
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+<header class="site-header"><div class="container nav">
+<a class="logo" href="../../"><span class="logo-mark" aria-hidden="true">☁️</span>Cloudy <span class="muted" style="font-weight:600">Prompt Library</span></a>
+<nav class="nav-links" aria-label="Main"><a href="../../prompts/">Library</a><a href="../../category/">Categories</a><a href="https://itscloudy96.github.io/ai-tool-finder/">Tool Finder</a><a href="https://itscloudy96.github.io/game-dev-kits/">Kits</a><a href="../../about/">About</a><a href="https://cloudys-newsletter.beehiiv.com/subscribe" target="_blank" rel="noopener">Newsletter</a></nav>
+</div></header>
+<main id="main" class="container">
+<p class="crumbs"><a href="../../">Home</a> / <a href="../../category/agent-templates/">Agent Task Templates</a> / SEO page auditor</p>
+<section class="hero" style="padding-top:1.5rem"><h1>SEO page auditor</h1><p>Audits a page for title, intent, structure, internal links and chatbot-readable signals — without black-hat tricks.</p>
+<div><a class="badge" href="../../category/agent-templates/">Agent Task Templates</a> <span class="badge">Claude</span> <span class="badge">ChatGPT</span> <span class="badge">Claude Code</span></div>
+<div class="btn-row"><button type="button" class="btn btn-primary" data-copy-target="#prompt-body">Copy prompt</button>
+<a class="btn btn-secondary" href="../../prompts/">Back to library</a></div></section>
+<section class="section"><h2>How to use it</h2><p class="how-to">Give the agent the page URL or HTML, the target query, and any related pages to link. Ask for a punch list, not a rewrite, unless you want one.</p>
+<div class="kv"><div><strong>Works with</strong><span>Claude, ChatGPT, Claude Code</span></div>
+<div><strong>Tags</strong><span><span class="badge">seo</span> <span class="badge">content</span> <span class="badge">audit</span></span></div></div></section>
+<section class="section"><h2>The prompt</h2>
+<div class="prompt-wrap">
+<button type="button" class="btn btn-secondary btn-sm copy-btn" data-copy-target="#prompt-body">Copy</button>
+<pre class="prompt" id="prompt-body">Task: Audit this page for search and chatbot visibility.
+
+Page: [URL or paste HTML]
+Target query / intent: [QUERY]
+Related pages we can link to: [URLS]
+
+Check and report on:
+- Title, H1, and meta description (accuracy, uniqueness, length, intent match)
+- Heading structure and whether the page actually answers the query near the top
+- Internal links (missing opportunities, vague anchor text)
+- Canonical, OG/Twitter tags, and obvious metadata gaps
+- Structured data if present (type, errors, missing fields)
+- llms.txt / crawl hints only if relevant to this site
+- Indexing risks (noindex, thin content, duplicate titles, blocked resources) you can actually observe
+- Page-level UX that hurts (huge unmarked ads, unreadable text, missing 404 handling) if visible
+
+Output:
+- A score-free punch list: Must fix / Should fix / Nice to have
+- For each item: what is wrong, why it matters, and a concrete rewrite or change
+- Optional rewritten title and meta description (3 options each)
+
+Rules:
+- White-hat only. No cloaking, keyword stuffing, link schemes, or &#x27;add 2,000 words&#x27;.
+- Do not invent ranking positions or traffic numbers.
+- If you cannot see the live HTML or headers, say what you could not verify.</pre>
+</div></section>
+<section class="section related"><h2>Related prompts</h2><div class="grid"><article class="card tool-card" data-id="daily-changelog-agent"><h3><a href="../../prompt/daily-changelog-agent/">Daily AI agent changelog researcher</a></h3><div><span class="badge">Agent Task Templates</span><span class="badge">Claude</span><span class="badge">ChatGPT</span><span class="badge">Claude Code</span></div><p>A task brief for an agent that gathers the day&#x27;s notable agent-tool and model changes into a tight changelog.</p><div class="meta"><a href="../../prompt/daily-changelog-agent/">Open →</a><button type="button" class="btn btn-secondary btn-sm" data-copy-id="daily-changelog-agent">Copy prompt</button></div></article><article class="card tool-card" data-id="competitor-teardown"><h3><a href="../../prompt/competitor-teardown/">Competitor feature teardown</a></h3><div><span class="badge">Agent Task Templates</span><span class="badge">Claude</span><span class="badge">ChatGPT</span><span class="badge">Claude Code</span></div><p>A structured brief for tearing down a competing product page-by-page without turning it into a slam piece.</p><div class="meta"><a href="../../prompt/competitor-teardown/">Open →</a><button type="button" class="btn btn-secondary btn-sm" data-copy-id="competitor-teardown">Copy prompt</button></div></article><article class="card tool-card" data-id="bug-repro-fix"><h3><a href="../../prompt/bug-repro-fix/">Bug repro-and-fix agent</a></h3><div><span class="badge">Agent Task Templates</span><span class="badge">Cursor</span><span class="badge">Claude Code</span><span class="badge">Codex</span></div><p>A task template that forces a reproduction, a root-cause hypothesis, and a minimal fix with a test.</p><div class="meta"><a href="../../prompt/bug-repro-fix/">Open →</a><button type="button" class="btn btn-secondary btn-sm" data-copy-id="bug-repro-fix">Copy prompt</button></div></article><article class="card tool-card" data-id="repo-onboarding"><h3><a href="../../prompt/repo-onboarding/">Repo onboarding agent</a></h3><div><span class="badge">Agent Task Templates</span><span class="badge">Cursor</span><span class="badge">Claude Code</span><span class="badge">Codex</span></div><p>Produces a practical onboarding brief for a new (or future) teammate from the repo itself.</p><div class="meta"><a href="../../prompt/repo-onboarding/">Open →</a><button type="button" class="btn btn-secondary btn-sm" data-copy-id="repo-onboarding">Copy prompt</button></div></article></div></section>
+<section class="section card"><h2>Get the daily AI agent changelog</h2><p class="muted">New agent tools, model updates and a fresh prompt from this library, in a 3-minute read.</p>
+<form class="newsletter" action="https://cloudys-newsletter.beehiiv.com/subscribe" method="get" target="_blank"><input type="email" name="email" placeholder="you@example.com" aria-label="Email address" required><button class="btn btn-primary" type="submit">Subscribe free</button></form></section>
+<p class="disclaimer">Original Cloudy writing. Free to use and adapt. Review model output before you ship it.</p>
+</main>
+<footer class="footer"><div class="container footer-grid">
+<div><strong>☁️ Cloudy</strong><p>Original, copy-ready prompts and agent configs for builders, gamers and vibe coders.</p>
+<form class="newsletter" action="https://cloudys-newsletter.beehiiv.com/subscribe" method="get" target="_blank"><input type="email" name="email" placeholder="you@example.com" aria-label="Email address" required><button class="btn btn-primary" type="submit">Get the daily AI agent changelog</button></form></div>
+<div><strong>Explore</strong><br><a href="../../category/system-prompts/">System Prompts</a><br><a href="../../category/cursor-rules/">Cursor Rules</a><br><a href="../../category/custom-instructions/">Custom Instructions</a><br><a href="../../category/agent-templates/">Agent Task Templates</a><br><a href="../../category/vibe-coding/">Vibe Coding</a><br><a href="../../category/game-dev/">Game Dev</a><br><a href="../../category/code-review/">Review &amp; Debug</a><br><a href="../../category/research-writing/">Research &amp; Writing</a></div>
+<div><strong>Cloudy</strong><br><a href="../../about/">About &amp; disclosure</a><br><a href="../../about/#sponsor">Sponsor Cloudy</a><br><a href="https://itscloudy96.github.io/ai-tool-finder/">AI Tool Finder</a><br><a href="https://itscloudy96.github.io/game-dev-kits/">Game Dev Kits</a><br><a href="https://x.com/ItsCloudySpace" target="_blank" rel="noopener">@ItsCloudySpace on X</a><br><a href="../../llms.txt">llms.txt</a><br><a href="../../sitemap.xml">Sitemap</a></div>
+</div><div class="container disclaimer" style="margin-top:1rem">© 2026 Cloudy. Prompts are original Cloudy writing, free to use and adapt. Review any model output before you ship it. Some outbound links may be affiliate links.</div></footer>
+<script src="../../js/app.js?v=2026-11-10" defer></script>
+</body></html>

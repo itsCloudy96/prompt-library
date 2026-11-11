@@ -1,0 +1,71 @@
+<!doctype html>
+<html lang="en" data-root="../../">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Frontend performance hunt (Copy-Ready Prompt) | Cloudy</title>
+<meta name="description" content="Frontend performance hunt: Finds likely frontend performance issues and ranks fixes by impact and effort, with a measurement plan.">
+<link rel="canonical" href="https://itscloudy96.github.io/prompt-library/prompt/performance-hunt/">
+<meta name="robots" content="index,follow,max-image-preview:large">
+<meta name="theme-color" content="#0b1020">
+<meta property="og:type" content="article"><meta property="og:site_name" content="Cloudy Prompt Library">
+<meta property="og:title" content="Frontend performance hunt (Copy-Ready Prompt) | Cloudy"><meta property="og:description" content="Frontend performance hunt: Finds likely frontend performance issues and ranks fixes by impact and effort, with a measurement plan.">
+<meta property="og:url" content="https://itscloudy96.github.io/prompt-library/prompt/performance-hunt/"><meta property="og:image" content="https://itscloudy96.github.io/prompt-library/og.png">
+<meta property="og:image:width" content="1200"><meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image"><meta name="twitter:site" content="@ItsCloudySpace">
+<meta name="twitter:title" content="Frontend performance hunt (Copy-Ready Prompt) | Cloudy"><meta name="twitter:description" content="Frontend performance hunt: Finds likely frontend performance issues and ranks fixes by impact and effort, with a measurement plan."><meta name="twitter:image" content="https://itscloudy96.github.io/prompt-library/og.png">
+<link rel="icon" href="../../favicon.svg" type="image/svg+xml">
+<link rel="alternate" type="text/plain" title="LLM summary" href="../../llms.txt">
+<link rel="stylesheet" href="../../css/styles.css?v=2026-11-10">
+<script type="application/ld+json">{"@context": "https://schema.org", "@type": "TechArticle", "headline": "Frontend performance hunt", "name": "Frontend performance hunt", "url": "https://itscloudy96.github.io/prompt-library/prompt/performance-hunt/", "description": "Finds likely frontend performance issues and ranks fixes by impact and effort, with a measurement plan.", "author": {"@type": "Organization", "name": "Cloudy"}, "publisher": {"@type": "Organization", "name": "Cloudy", "url": "https://itscloudy96.github.io/prompt-library/", "sameAs": ["https://x.com/ItsCloudySpace", "https://cloudys-newsletter.beehiiv.com", "https://itscloudy96.github.io/ai-tool-finder/", "https://itscloudy96.github.io/game-dev-kits/"]}, "dateModified": "2026-11-10", "keywords": "performance, frontend, review", "articleSection": "Review & Debug"}</script><script type="application/ld+json">{"@context": "https://schema.org", "@type": "BreadcrumbList", "itemListElement": [{"@type": "ListItem", "position": 1, "name": "Home", "item": "https://itscloudy96.github.io/prompt-library/"}, {"@type": "ListItem", "position": 2, "name": "Review & Debug", "item": "https://itscloudy96.github.io/prompt-library/category/code-review/"}, {"@type": "ListItem", "position": 3, "name": "Frontend performance hunt", "item": "https://itscloudy96.github.io/prompt-library/prompt/performance-hunt/"}]}</script>
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+<header class="site-header"><div class="container nav">
+<a class="logo" href="../../"><span class="logo-mark" aria-hidden="true">☁️</span>Cloudy <span class="muted" style="font-weight:600">Prompt Library</span></a>
+<nav class="nav-links" aria-label="Main"><a href="../../prompts/">Library</a><a href="../../category/">Categories</a><a href="https://itscloudy96.github.io/ai-tool-finder/">Tool Finder</a><a href="https://itscloudy96.github.io/game-dev-kits/">Kits</a><a href="../../about/">About</a><a href="https://cloudys-newsletter.beehiiv.com/subscribe" target="_blank" rel="noopener">Newsletter</a></nav>
+</div></header>
+<main id="main" class="container">
+<p class="crumbs"><a href="../../">Home</a> / <a href="../../category/code-review/">Review &amp; Debug</a> / Frontend performance hunt</p>
+<section class="hero" style="padding-top:1.5rem"><h1>Frontend performance hunt</h1><p>Finds likely frontend performance issues and ranks fixes by impact and effort, with a measurement plan.</p>
+<div><a class="badge" href="../../category/code-review/">Review &amp; Debug</a> <span class="badge">Claude</span> <span class="badge">ChatGPT</span> <span class="badge">Cursor</span> <span class="badge">Claude Code</span></div>
+<div class="btn-row"><button type="button" class="btn btn-primary" data-copy-target="#prompt-body">Copy prompt</button>
+<a class="btn btn-secondary" href="../../prompts/">Back to library</a></div></section>
+<section class="section"><h2>How to use it</h2><p class="how-to">Paste the stack, a URL or key components, and any traces you have (or say you have none).</p>
+<div class="kv"><div><strong>Works with</strong><span>Claude, ChatGPT, Cursor, Claude Code</span></div>
+<div><strong>Tags</strong><span><span class="badge">performance</span> <span class="badge">frontend</span> <span class="badge">review</span></span></div></div></section>
+<section class="section"><h2>The prompt</h2>
+<div class="prompt-wrap">
+<button type="button" class="btn btn-secondary btn-sm copy-btn" data-copy-target="#prompt-body">Copy</button>
+<pre class="prompt" id="prompt-body">Help me hunt frontend performance issues in [APP / STACK].
+
+Symptoms: [e.g. slow first load, jank on scroll, sluggish typings]
+Where to look: [routes, components, or repo paths]
+Measurements I already have: [Lighthouse, traces, or &#x27;none&#x27;]
+
+Please:
+1. List the most likely causes in this stack (bundle size, images, unnecessary client JS, chatty network, layout thrash, expensive renders)
+2. Rank a punch list: impact vs effort, with the first measurement I should take for each
+3. Call out any anti-patterns you can already see in the code or description
+4. Propose a short measurement plan (what to record before and after)
+5. Suggest 3 changes I could land this week, not a rewrite
+
+Rules:
+- Do not invent timing numbers. If I gave none, say what to measure.
+- Prefer standard tools the stack already has.
+- No &#x27;just switch frameworks&#x27; advice unless I asked for a migration.
+- Keep accessibility and correctness intact (do not tell me to remove labels or error states to save bytes).</pre>
+</div></section>
+<section class="section related"><h2>Related prompts</h2><div class="grid"><article class="card tool-card" data-id="pr-review-checklist"><h3><a href="../../prompt/pr-review-checklist/">PR review checklist</a></h3><div><span class="badge">Review &amp; Debug</span><span class="badge">ChatGPT</span><span class="badge">Claude</span><span class="badge">Cursor</span></div><p>A review prompt that scores a diff on correctness, risk, and clarity, with must-fix vs nit separated.</p><div class="meta"><a href="../../prompt/pr-review-checklist/">Open →</a><button type="button" class="btn btn-secondary btn-sm" data-copy-id="pr-review-checklist">Copy prompt</button></div></article><article class="card tool-card" data-id="defensive-security-review"><h3><a href="../../prompt/defensive-security-review/">Defensive security review</a></h3><div><span class="badge">Review &amp; Debug</span><span class="badge">Claude</span><span class="badge">ChatGPT</span><span class="badge">Cursor</span></div><p>A defensive review of a feature or diff: trust boundaries, auth, data handling, and fix-forward guidance.</p><div class="meta"><a href="../../prompt/defensive-security-review/">Open →</a><button type="button" class="btn btn-secondary btn-sm" data-copy-id="defensive-security-review">Copy prompt</button></div></article><article class="card tool-card" data-id="flaky-test-detective"><h3><a href="../../prompt/flaky-test-detective/">Flaky test detective</a></h3><div><span class="badge">Review &amp; Debug</span><span class="badge">Cursor</span><span class="badge">Claude Code</span><span class="badge">Claude</span></div><p>Helps find why a test is flaky: time, order, network, randomness, or shared state — and how to make it deterministic.</p><div class="meta"><a href="../../prompt/flaky-test-detective/">Open →</a><button type="button" class="btn btn-secondary btn-sm" data-copy-id="flaky-test-detective">Copy prompt</button></div></article><article class="card tool-card" data-id="type-safety-pass"><h3><a href="../../prompt/type-safety-pass/">Type-safety pass</a></h3><div><span class="badge">Review &amp; Debug</span><span class="badge">Cursor</span><span class="badge">Claude Code</span><span class="badge">Claude</span></div><p>A pass over a TypeScript or typed Python change to remove unsafe escapes and tighten public types.</p><div class="meta"><a href="../../prompt/type-safety-pass/">Open →</a><button type="button" class="btn btn-secondary btn-sm" data-copy-id="type-safety-pass">Copy prompt</button></div></article></div></section>
+<section class="section card"><h2>Get the daily AI agent changelog</h2><p class="muted">New agent tools, model updates and a fresh prompt from this library, in a 3-minute read.</p>
+<form class="newsletter" action="https://cloudys-newsletter.beehiiv.com/subscribe" method="get" target="_blank"><input type="email" name="email" placeholder="you@example.com" aria-label="Email address" required><button class="btn btn-primary" type="submit">Subscribe free</button></form></section>
+<p class="disclaimer">Original Cloudy writing. Free to use and adapt. Review model output before you ship it.</p>
+</main>
+<footer class="footer"><div class="container footer-grid">
+<div><strong>☁️ Cloudy</strong><p>Original, copy-ready prompts and agent configs for builders, gamers and vibe coders.</p>
+<form class="newsletter" action="https://cloudys-newsletter.beehiiv.com/subscribe" method="get" target="_blank"><input type="email" name="email" placeholder="you@example.com" aria-label="Email address" required><button class="btn btn-primary" type="submit">Get the daily AI agent changelog</button></form></div>
+<div><strong>Explore</strong><br><a href="../../category/system-prompts/">System Prompts</a><br><a href="../../category/cursor-rules/">Cursor Rules</a><br><a href="../../category/custom-instructions/">Custom Instructions</a><br><a href="../../category/agent-templates/">Agent Task Templates</a><br><a href="../../category/vibe-coding/">Vibe Coding</a><br><a href="../../category/game-dev/">Game Dev</a><br><a href="../../category/code-review/">Review &amp; Debug</a><br><a href="../../category/research-writing/">Research &amp; Writing</a></div>
+<div><strong>Cloudy</strong><br><a href="../../about/">About &amp; disclosure</a><br><a href="../../about/#sponsor">Sponsor Cloudy</a><br><a href="https://itscloudy96.github.io/ai-tool-finder/">AI Tool Finder</a><br><a href="https://itscloudy96.github.io/game-dev-kits/">Game Dev Kits</a><br><a href="https://x.com/ItsCloudySpace" target="_blank" rel="noopener">@ItsCloudySpace on X</a><br><a href="../../llms.txt">llms.txt</a><br><a href="../../sitemap.xml">Sitemap</a></div>
+</div><div class="container disclaimer" style="margin-top:1rem">© 2026 Cloudy. Prompts are original Cloudy writing, free to use and adapt. Review any model output before you ship it. Some outbound links may be affiliate links.</div></footer>
+<script src="../../js/app.js?v=2026-11-10" defer></script>
+</body></html>
